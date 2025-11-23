@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Log In</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'placement/assets/css/main.css' %}">
+</head>
+<body>
+<!-- Log In -->
+ <div class="login-wrapper">
+    <section id="contact" class="four">
+        <div class="container">
+
+            <header>
+                <h2>Login</h2>
+            </header>
+
+            <p>Welcome to the Internship Placement & Tracking System — securely log in to manage applications, track progress, submit logbooks, and receive timely updates and evaluations.</p>
+
+            <form method="POST" action="#">
+                    {% csrf_token %}
+                <div class="row">
+                    <div class="col-6 col-12-mobile"><input type="text" name="username" placeholder="Username" required></div>
+                    <div class="col-6 col-12-mobile"><input type="password" name="password" placeholder="Password" required></div>
+                    <div class="col-12">
+                        <input type="submit" value="Log In" />
+                    </div>
+
+                        {% if error %}
+                        <p style="color:red;">{{ error }}</p>
+                        {% endif %}
+                </div>
+            </form>
+        </div>
+    </section>
+ </div>
+
+<!-- Scripts -->
+    <script src="{% static 'placement/assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'placement/assets/js/jquery.scrolly.min.js' %}"></script>
+    <script src="{% static 'placement/assets/js/jquery.scrollex.min.js' %}"></script>
+    <script src="{% static 'placement/assets/js/browser.min.js' %}"></script>
+    <script src="{% static 'placement/assets/js/breakpoints.min.js' %}"></script>
+    <script src="{% static 'placement/assets/js/util.js' %}"></script>
+    <script src="{% static 'placement/assets/js/main.js' %}"></script>
+
+</body>
+
+</html>

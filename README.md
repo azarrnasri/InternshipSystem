@@ -17,6 +17,12 @@ This Django project manages internship placements with full UI, logbooks, evalua
 8. Run the server: `python manage.py runserver` → open browser at `http://127.0.0.1:8000/`  
 9. Deactivate virtual environment when done: `deactivate`  
 
+USER INFORMATION
+username pass
+std1     1234 (student)
+cpy1     1234 (company advisor)
+acd      1234 (academic advisor)
+
 **Notes:**  
 - `venv/` is **not included** in the repository; each collaborator must create their own.  
 - Static files for the GUI are included inside app folders.  
