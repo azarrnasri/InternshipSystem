@@ -1,0 +1,55 @@
+{% load static %}
+
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>{% block title %}Dashboard{% endblock %}</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <!-- CSS -->
+        <link rel="stylesheet" href="{% static 'placement/assets/css/main.css' %}">
+	</head>
+
+	<body class="is-preload">
+
+		<!-- Header -->
+			<div id="header">
+
+				<div class="top">
+
+					<!-- Logo -->
+						<div id="logo">
+							<span class="image avatar48"><img src="images/avatar.jpg" alt="" /></span>
+							<h1 id="title">{{ request.user.username }}</h1>
+							<p>{{ request.user.role }}</p>
+                            <a href="{% url 'logout' %}">Logout</a>
+						</div>
+
+					<!-- Nav -->
+						<nav id="nav">
+							<ul>
+								<li><a href="{% url 'student_dashboard' %}">Dashboard</a></li>
+								<li><a href="#">My Profile</a></li>
+								<li><a href="#">Internship Opportunities</a></li>
+								<li><a href="#">My Applications</a></li>
+								<li><a href="#">Logbook</a></li>
+								<li><a href="#">Attendance</a></li>
+							</ul>
+						</nav>
+
+				</div>
+
+			</div>
+
+		<!-- Main -->
+			<div id="main">
+				{% block content %}{% endblock %}
+			</div>
+			
+		<!-- Scripts -->
+		 <script src="{% static 'placement/assets/js/jquery.min.js' %}"></script>
+		 <script src="{% static 'placement/assets/js/main.js' %}"></script>
+		
+		</body>
+		</html>

@@ -21,7 +21,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_redirect, name='dashboard'),  # redirect based on role
-    path('student/', views.student_dashboard, name='student_dashboard'),
+    path('student/dashboard/', views.student_dashboard, name='student_dashboard'),
     path('company/', views.company_dashboard, name='company_dashboard'),
     path('academic/', views.academic_dashboard, name='academic_dashboard'),
 ]

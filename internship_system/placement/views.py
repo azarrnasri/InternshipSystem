@@ -38,10 +38,15 @@ def dashboard_redirect(request):
         return redirect('login')
 
 # --- Individual dashboards ---
-@login_required
 @role_required(allowed_roles=['student'])
 def student_dashboard(request):
-    return render(request, 'student_dashboard.html')
+    context = {
+        'placement_status': 'Not Assigned',
+        'application_count': 0,
+        'logbook_status': 'Not Submitted',
+        'notification_count': 0,
+    }
+    return render(request, 'student/dashboard.html', context)
 
 @login_required
 @role_required(allowed_roles=['company'])
