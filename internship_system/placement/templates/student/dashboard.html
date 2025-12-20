@@ -1,0 +1,56 @@
+{% extends "student/base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<section class="one">
+    <div class="container">
+
+        <header>
+            <h2>Student Dashboard</h2>
+            <p>Welcome, {{ request.user.username }}</p>
+        </header>
+
+        <div class="row">
+
+            <div class="col-6 col-12-mobile">
+                <article class="item">
+                    <header>
+                        <h3>Placement Status</h3>
+                    </header>
+                    <p>{{ placement_status }}</p>
+                </article>
+            </div>
+
+            <div class="col-6 col-12-mobile">
+                <article class="item">
+                    <header>
+                        <h3>Total Applications</h3>
+                    </header>
+                    <p>{{ application_count }}</p>
+                </article>
+            </div>
+
+            <div class="col-6 col-12-mobile">
+                <article class="item">
+                    <header>
+                        <h3>Logbook Status</h3>
+                    </header>
+                    <p>{{ logbook_status }}</p>
+                </article>
+            </div>
+
+            <div class="col-6 col-12-mobile">
+                <article class="item">
+                    <header>
+                        <h3>Notifications</h3>
+                    </header>
+                    <p>{{ notification_count }} new</p>
+                </article>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+{% endblock %}
