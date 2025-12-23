@@ -8,6 +8,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.pyc
 
 
 # Django static and media files
@@ -25,7 +26,7 @@ media/
 
 # OS generated files
 .DS_Store
-Thumbs.db
+*.db
 
 # Optional: pipenv / poetry environments
 Pipfile.lock
