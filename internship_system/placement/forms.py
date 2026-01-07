@@ -1,11 +1,16 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Document
+from .models import InternshipApplication, Document
 
 User = get_user_model()
 
 ALLOWED_TYPES = ['application/pdf', 'application/msword',
                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+
+class InternshipApplicationForm(forms.ModelForm):
+    class Meta:
+        model = InternshipApplication
+        fields = []  # no editable fields
 
 class StudentProfileForm(forms.ModelForm):
     class Meta:

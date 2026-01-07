@@ -23,6 +23,8 @@ urlpatterns = [
     path('dashboard/', views.dashboard_redirect, name='dashboard'),  # redirect based on role
     path('student/dashboard/', views.student_dashboard, name='student_dashboard'),
     path('student/profile/', views.student_profile, name='student_profile'),
+    path('student/internships/', views.internship_list, name='internship_list'),
+    path('student/internship/<int:id>/apply/', views.apply_internship, name='apply_internship'),
     path('company/', views.company_dashboard, name='company_dashboard'),
     path('academic/', views.academic_dashboard, name='academic_dashboard'),
 ]
