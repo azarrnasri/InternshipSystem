@@ -1,10 +1,11 @@
 # Create your views here.
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from .decorators import role_required
-from .models import Student, Document
-from .forms import StudentProfileForm, DocumentUploadForm
+from .models import Student, Document, Internship, InternshipApplication, InternshipPlacement
+from .forms import StudentProfileForm, DocumentUploadForm, InternshipApplicationForm
 
 # --- Login View ---
 def login_view(request):
@@ -97,3 +98,87 @@ def student_profile(request):
         'doc_form': doc_form,
         'documents': documents
     })
+
+#Internship detail
+@login_required
+@role_required(['student'])
+def internship_list(request):
+    internships = Internship.objects.filter(status='Open')
+
+    # Search
+    query = request.GET.get('q')
+    if query:
+        internships = internships.filter(
+            Q(title__icontains=query) |
+            Q(company__company_name__icontains=query)
+        )
+
+    # Location filter
+    location = request.GET.get('location')
+    if location:
+        internships = internships.filter(location=location)
+
+    # Sorting
+    sort = request.GET.get('sort')
+    if sort == 'latest':
+        internships = internships.order_by('-created_at')
+    elif sort == 'oldest':
+        internships = internships.order_by('created_at')
+
+    # Unique locations for dropdown
+    locations = Internship.objects.values_list('location', flat=True).distinct()
+
+    context = {
+        'internships': internships,
+        'locations': locations
+    }
+    return render(request, 'student/internship_list.html', context)
+
+#Apply internship
+@login_required
+@role_required(['student'])
+def apply_internship(request, id):
+    internship = get_object_or_404(Internship, id=id)
+    student = Student.objects.get(user=request.user)
+
+    #Block if student already placed
+    if InternshipPlacement.objects.filter(student=student,status='Active').exists():
+        return render(request, 'student/apply_internship.html', {
+            'error': 'You have already been placed and cannot apply for new internships.'
+            })
+
+    #Block duplicate application
+    if InternshipApplication.objects.filter(student=student, internship=internship).exists():
+        return render(request, 'student/apply_internship.html', {
+            'error': 'You have already applied for this internship.'
+        })
+
+    if request.method == 'POST':
+        app_form = InternshipApplicationForm(request.POST)
+        doc_form = DocumentUploadForm(request.POST, request.FILES)
+
+        if app_form.is_valid() and doc_form.is_valid():
+            application = InternshipApplication.objects.create(
+                student=student,
+                internship=internship
+            )
+
+            document = doc_form.save(commit=False)
+            document.student = student
+            document.doc_type = 'Resume'
+            document.save()
+
+            return render(request, 'student/apply_internship.html', {
+                'success': 'Application submitted successfully!'
+            })
+
+    else:
+        app_form = InternshipApplicationForm()
+        doc_form = DocumentUploadForm()
+
+    return render(request, 'student/apply_internship.html', {
+        'app_form': app_form,
+        'doc_form': doc_form,
+        'internship': internship
+    })
+
