@@ -149,6 +149,6 @@ class PerformanceEvaluation(models.Model):
 # Document
 class Document(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    file_path = models.CharField(max_length=255)
+    file = models.FileField(upload_to='documents/')
     doc_type = models.CharField(max_length=50)
     upload_date = models.DateTimeField(auto_now_add=True)
