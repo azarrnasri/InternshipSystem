@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path
+from django.shortcuts import redirect
 from . import views
 
 urlpatterns = [
@@ -23,5 +24,12 @@ urlpatterns = [
     path('dashboard/', views.dashboard_redirect, name='dashboard'),  # redirect based on role
     path('student/dashboard/', views.student_dashboard, name='student_dashboard'),
     path('company/', views.company_dashboard, name='company_dashboard'),
-    path('academic/', views.academic_dashboard, name='academic_dashboard'),
+    path('academic/dashboard/', views.academic_dashboard, name='academic_dashboard'),
+
+    # Add this redirect
+    path('academic/', lambda request: redirect('academic_dashboard')),
+
+    path('academic/student/<int:student_id>/', views.academic_student_detail, name='academic_student_detail'),
+    path('academic/evaluation/<int:eval_id>/submit/', views.submit_academic_evaluation, name='submit_academic_evaluation'),
 ]
+
