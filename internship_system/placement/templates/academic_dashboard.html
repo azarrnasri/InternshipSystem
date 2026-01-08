@@ -52,137 +52,87 @@
 			</div>
 
 		<!-- Main -->
-			<div id="main">
+		<div id="main">
 
-				<!-- Intro -->
-					<section id="top" class="one dark cover">
-						<div class="container">
+			<!-- Intro / Dashboard Header -->
+			<section id="top" class="one dark cover">
+				<div class="container">
+					<header>
+						<h2 class="alt">Welcome, {{ request.user.get_full_name }}</h2>
+						<p>Academic Supervisor Dashboard</p>
+					</header>
+				</div>
+			</section>
 
-							<header>
-								<h2 class="alt">Hi! I'm <strong>Prologue</strong>, a <a href="http://html5up.net/license">free</a> responsive<br />
-								site template designed by <a href="http://html5up.net">HTML5 UP</a>.</h2>
-								<p>Ligula scelerisque justo sem accumsan diam quis<br />
-								vitae natoque dictum sollicitudin elementum.</p>
-							</header>
+			<!-- Academic Supervisor Summary -->
+			<section id="summary" class="two">
+				<div class="container">
+					<header>
+						<h2>Dashboard Overview</h2>
+					</header>
 
-							<footer>
-								<a href="#portfolio" class="button scrolly">Magna Aliquam</a>
-							</footer>
-
+					<div class="row">
+						<!-- Assigned Students -->
+						<div class="col-4 col-12-mobile">
+							<article class="item">
+								<header>
+									<h3>Assigned Students</h3>
+								</header>
+								<ul>
+									{% for s in students %}
+									<li>
+										<a href="{% url 'academic_student_detail' s.id %}">
+											{{ s.user.get_full_name }} ({{ s.program }})
+										</a>
+									</li>
+									{% empty %}
+									<li>No students assigned.</li>
+									{% endfor %}
+								</ul>
+							</article>
 						</div>
-					</section>
 
-				<!-- Portfolio -->
-					<section id="portfolio" class="two">
-						<div class="container">
-
-							<header>
-								<h2>Portfolio</h2>
-							</header>
-
-							<p>Vitae natoque dictum etiam semper magnis enim feugiat convallis convallis
-							egestas rhoncus ridiculus in quis risus amet curabitur tempor orci penatibus.
-							Tellus erat mauris ipsum fermentum etiam vivamus eget. Nunc nibh morbi quis
-							fusce hendrerit lacus ridiculus.</p>
-
-							<div class="row">
-								<div class="col-4 col-12-mobile">
-									<article class="item">
-										<a href="#" class="image fit"><img src="images/pic02.jpg" alt="" /></a>
-										<header>
-											<h3>Ipsum Feugiat</h3>
-										</header>
-									</article>
-									<article class="item">
-										<a href="#" class="image fit"><img src="images/pic03.jpg" alt="" /></a>
-										<header>
-											<h3>Rhoncus Semper</h3>
-										</header>
-									</article>
-								</div>
-								<div class="col-4 col-12-mobile">
-									<article class="item">
-										<a href="#" class="image fit"><img src="images/pic04.jpg" alt="" /></a>
-										<header>
-											<h3>Magna Nullam</h3>
-										</header>
-									</article>
-									<article class="item">
-										<a href="#" class="image fit"><img src="images/pic05.jpg" alt="" /></a>
-										<header>
-											<h3>Natoque Vitae</h3>
-										</header>
-									</article>
-								</div>
-								<div class="col-4 col-12-mobile">
-									<article class="item">
-										<a href="#" class="image fit"><img src="images/pic06.jpg" alt="" /></a>
-										<header>
-											<h3>Dolor Penatibus</h3>
-										</header>
-									</article>
-									<article class="item">
-										<a href="#" class="image fit"><img src="images/pic07.jpg" alt="" /></a>
-										<header>
-											<h3>Orci Convallis</h3>
-										</header>
-									</article>
-								</div>
-							</div>
-
+						<!-- Pending Logbooks -->
+						<div class="col-4 col-12-mobile">
+							<article class="item">
+								<header>
+									<h3>Pending Logbooks</h3>
+								</header>
+								<p>{{ pending_logbooks.count }} logbooks awaiting review</p>
+								<ul>
+									{% for log in pending_logbooks %}
+									<li>
+										{{ log.student.user.get_full_name }} - Week {{ log.week_no }}
+									</li>
+									{% empty %}
+									<li>No pending logbooks.</li>
+									{% endfor %}
+								</ul>
+							</article>
 						</div>
-					</section>
 
-				<!-- About Me -->
-					<section id="about" class="three">
-						<div class="container">
-
-							<header>
-								<h2>About Me</h2>
-							</header>
-
-							<a href="#" class="image featured"><img src="images/pic08.jpg" alt="" /></a>
-
-							<p>Tincidunt eu elit diam magnis pretium accumsan etiam id urna. Ridiculus
-							ultricies curae quis et rhoncus velit. Lobortis elementum aliquet nec vitae
-							laoreet eget cubilia quam non etiam odio tincidunt montes. Elementum sem
-							parturient nulla quam placerat viverra mauris non cum elit tempus ullamcorper
-							dolor. Libero rutrum ut lacinia donec curae mus vel quisque sociis nec
-							ornare iaculis.</p>
-
+						<!-- Pending Evaluations -->
+						<div class="col-4 col-12-mobile">
+							<article class="item">
+								<header>
+									<h3>Pending Evaluations</h3>
+								</header>
+								<p>{{ pending_evals.count }} evaluations awaiting submission</p>
+								<ul>
+									{% for eval in pending_evals %}
+									<li>
+										{{ eval.student.user.get_full_name }} - <a href="{% url 'submit_academic_evaluation' eval.id %}">Evaluate</a>
+									</li>
+									{% empty %}
+									<li>No pending evaluations.</li>
+									{% endfor %}
+								</ul>
+							</article>
 						</div>
-					</section>
+					</div>
+				</div>
+			</section>
 
-				<!-- Contact -->
-					<section id="contact" class="four">
-						<div class="container">
-
-							<header>
-								<h2>Contact</h2>
-							</header>
-
-							<p>Elementum sem parturient nulla quam placerat viverra
-							mauris non cum elit tempus ullamcorper dolor. Libero rutrum ut lacinia
-							donec curae mus. Eleifend id porttitor ac ultricies lobortis sem nunc
-							orci ridiculus faucibus a consectetur. Porttitor curae mauris urna mi dolor.</p>
-
-							<form method="post" action="#">
-								<div class="row">
-									<div class="col-6 col-12-mobile"><input type="text" name="name" placeholder="Name" /></div>
-									<div class="col-6 col-12-mobile"><input type="text" name="email" placeholder="Email" /></div>
-									<div class="col-12">
-										<textarea name="message" placeholder="Message"></textarea>
-									</div>
-									<div class="col-12">
-										<input type="submit" value="Send Message" />
-									</div>
-								</div>
-							</form>
-
-						</div>
-					</section>
-
-			</div>
 
 		<!-- Footer -->
 			<div id="footer">
