@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import *
+from .models import User, Student, AcademicSupervisor, CompanySupervisor
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -53,4 +54,7 @@ class PerformanceEvaluationAdmin(admin.ModelAdmin):
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('student', 'doc_type', 'upload_date')
+
+
+
 

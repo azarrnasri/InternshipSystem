@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - User Form</title>
+</head>
+<body>
+    <h1>{{ form.instance.pk|yesno:"Edit User,Add User" }}</h1>
+
+
+    {% if user_form.errors %}
+    <pre>{{ user_form.errors }}</pre>
+    {% endif %}
+
+    {% if student_form.errors %}
+    <pre>{{ student_form.errors }}</pre>
+    {% endif %}
+
+    {% if academic_form.errors %}
+    <pre>{{ academic_form.errors }}</pre>
+    {% endif %}
+
+    {% if company_form.errors %}
+    <pre>{{ company_form.errors }}</pre>
+    {% endif %}
+
+
+    <form method="post" novalidate action="">
+  {% csrf_token %}
+
+  <fieldset>
+    <legend>User Info</legend>
+    {{ user_form.as_p }}
+  </fieldset>
+
+  <fieldset id="student-fields" style="display:none;">
+    <legend>Student Info</legend>
+    {{ student_form.as_p }}
+  </fieldset>
+
+  <fieldset id="academic-fields" style="display:none;">
+    <legend>Academic Supervisor Info</legend>
+    {{ academic_form.as_p }}
+  </fieldset>
+
+  <fieldset id="company-fields" style="display:none;">
+    <legend>Company Supervisor Info</legend>
+    {{ company_form.as_p }}
+  </fieldset>
+
+  <button type="submit">Save</button>
+</form>
+
+</body>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const roleSelect = document.getElementById('id_role');
+
+  if (!roleSelect) return;  // 🔥 prevents JS crash
+
+  const sections = {
+    student: document.getElementById('student-fields'),
+    academic: document.getElementById('academic-fields'),
+    company: document.getElementById('company-fields'),
+  };
+
+  function toggleFields() {
+    Object.values(sections).forEach(s => {
+      if (s) s.style.display = 'none';
+    });
+
+    if (sections[roleSelect.value]) {
+      sections[roleSelect.value].style.display = 'block';
+    }
+  }
+
+  roleSelect.addEventListener('change', toggleFields);
+  toggleFields();
+});
+</script>
+
+
+</html>
