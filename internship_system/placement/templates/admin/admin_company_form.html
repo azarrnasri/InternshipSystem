@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% if is_edit %}Edit{% else %}Add{% endif %} Company</title>
+</head>
+<body>
+
+<h1>{% if is_edit %}Edit{% else %}Add{% endif %} Company</h1>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Company Name</label><br>
+    <input type="text"
+           name="company_name"
+           value="{{ company.company_name|default:'' }}"
+           required>
+    <br><br>
+
+    <label>Address</label><br>
+    <textarea name="address"
+              rows="4"
+              required>{{ company.address|default:'' }}</textarea>
+    <br><br>
+
+    <button type="submit">
+        {% if is_edit %}Update{% else %}Create{% endif %}
+    </button>
+</form>
+
+<br>
+<a href="{% url 'admin_company_list' %}">⬅ Back to Company List</a>
+
+</body>
+</html>

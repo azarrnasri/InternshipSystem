@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Company Management</title>
+</head>
+<body>
+
+<h1>Company Management</h1>
+
+<a href="{% url 'admin_add_company' %}">➕ Add Company</a>
+<br><br>
+
+<table border="1" cellpadding="8">
+<tr>
+    <th>Company Name</th>
+    <th>Address</th>
+    <th>Actions</th>
+</tr>
+
+{% for company in companies %}
+<tr>
+    <td>{{ company.company_name }}</td>
+    <td>{{ company.address }}</td>
+    <td style="min-width:160px;">
+
+        <a href="{% url 'admin_edit_company' company.id %}">
+            <button>Edit</button>
+        </a>
+
+        <form method="post"
+              action="{% url 'admin_delete_company' company.id %}"
+              style="display:inline;"
+              onsubmit="return confirm('Delete this company?');">
+            {% csrf_token %}
+            <button type="submit">Delete</button>
+        </form>
+
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="3">No companies found</td>
+</tr>
+{% endfor %}
+</table>
+
+<br>
+<a href="{% url 'admin_user_list' %}">⬅ Back to User Management</a>
+
+</body>
+</html>
+

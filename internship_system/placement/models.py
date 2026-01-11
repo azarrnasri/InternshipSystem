@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.exceptions import ValidationError
 
 # Custom User Model
 class User(AbstractUser):
@@ -19,6 +20,12 @@ class AcademicSupervisor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     department = models.CharField(max_length=100)
 
+    def save(self, *args, **kwargs):
+        if self.user.role != 'academic':
+            raise ValidationError("User role must be academic")
+        super().save(*args, **kwargs)
+
+
     def __str__(self):
         return self.user.username
     
@@ -33,6 +40,12 @@ class Student(models.Model):
         null=True,
         blank=True
     )
+
+    def save(self, *args, **kwargs):
+        if self.user.role != 'student':
+            raise ValidationError("User role must be student")
+        super().save(*args, **kwargs)
+
 
     def __str__(self):
         return self.user.username
@@ -49,6 +62,11 @@ class Company(models.Model):
 class CompanySupervisor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        if self.user.role != 'company':
+            raise ValidationError("User role must be company")
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.user.username
