@@ -33,3 +33,7 @@ Pipfile.lock
 poetry.lock
 internship_system/internship_system/__pycache__/settings.cpython-314.pyc
 internship_system/internship_system/__pycache__/urls.cpython-314.pyc
+
+db.sqlite3
+*.sqlite3
+*.sqlite3-journal
