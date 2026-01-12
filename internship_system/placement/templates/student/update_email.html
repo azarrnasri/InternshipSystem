@@ -1,0 +1,15 @@
+{% extends 'student/base.html' %}
+
+{% block content %}
+
+<h2>Update Email</h2>
+
+<p>Current Email: <strong>{{ current_email }}</strong></p>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save</button>
+</form>
+
+{% endblock %}

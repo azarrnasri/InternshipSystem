@@ -1,0 +1,11 @@
+{% extends 'student/base.html' %}
+
+{% block content %}
+<p>Delete Document</p>
+<p>Are you sure you want to delete this document?</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit">Yes, Delete</button>
+  <a href="{% url 'student_profile' %}">Cancel</a>
+</form>
+{% endblock %}
