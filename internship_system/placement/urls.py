@@ -27,7 +27,6 @@ urlpatterns = [
     path('student/internships/', views.internship_list, name='internship_list'),
     path('student/internship/<int:id>/apply/', views.apply_internship, name='apply_internship'),
     path('company/', views.company_dashboard, name='company_dashboard'),
-<<<<<<< HEAD
     path('academic/', views.academic_dashboard, name='academic_dashboard'),
     path('manager/', views.admin, name='admin'),
     path('manager/users/', views.admin_user_list, name='admin_user_list'),
@@ -38,10 +37,6 @@ urlpatterns = [
     path('manager/companies/add/', views.admin_add_company, name='admin_add_company'),
     path('manager/companies/edit/<int:company_id>/', views.admin_edit_company, name='admin_edit_company'),
     path('manager/companies/delete/<int:company_id>/', views.admin_delete_company, name='admin_delete_company'),
-
-
-]
-=======
     path('academic/dashboard/', views.academic_dashboard, name='academic_dashboard'),
 
     # Add this redirect
@@ -51,4 +46,3 @@ urlpatterns = [
     path('academic/evaluation/<int:eval_id>/submit/', views.submit_academic_evaluation, name='submit_academic_evaluation'),
 ]
 
->>>>>>> main
