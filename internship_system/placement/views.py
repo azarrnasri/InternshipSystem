@@ -8,6 +8,8 @@ from django.db.models import Q
 from django.utils import timezone
 from .decorators import role_required
 from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm
+from django.utils.timezone import now
+from django.db.models import Prefetch
 from .models import (
     User,
     Student, 
@@ -70,7 +72,132 @@ def student_dashboard(request):
 @login_required
 @role_required(allowed_roles=['company'])
 def company_dashboard(request):
-    return render(request, 'company_dashboard.html')
+    try:
+        #Logged-in company supervisor
+        company_supervisor = CompanySupervisor.objects.get(user=request.user)
+        company = company_supervisor.company
+        profile_missing = False
+    except CompanySupervisor.DoesNotExist:
+        return render(
+            request,
+            'company/dashboard.html',
+            {
+                'total_interns': 0,
+                'pending_applications': 0,
+                'pending_logbooks': 0,
+                'attendance_not_marked': 0,
+                'interns': [],
+                'profile_missing': True,
+            }
+        )
+
+    #1. Total active interns
+    total_interns = InternshipPlacement.objects.filter(
+        company_supervisor = company_supervisor,
+        status = 'Active'
+    ).count()
+
+    #2. Pending internship applications
+    pending_applications = InternshipApplication.objects.filter(
+        internship__company = company,
+        status = 'Pending'
+    ).count()
+
+    #3. Pending logbooks
+    pending_logbooks = Logbook.objects.filter(
+        application__internship__company = company,
+        company_approval__isnull =  True
+    ).count()
+
+    #4. Attendance that has not marked yet
+    today = now().date()
+
+    attendance_not_marked = InternshipPlacement.objects.filter(
+        company_supervisor = company_supervisor,
+        status = 'Active'
+    ).exclude(
+        attendance__date = today
+    ).count()
+
+    #5. Intern list (for table / navbar)
+    interns = Student.objects.filter(
+        internshipplacement__company_supervisor = company_supervisor,
+        internshipplacement__status = 'Active'
+    ).distinct()
+
+    return render(
+        request,
+        'company/dashboard.html',
+        {
+            'total_interns': total_interns,
+            'pending_applications': pending_applications,
+            'pending_logbooks': pending_logbooks,
+            'attendance_not_marked': attendance_not_marked,
+            'interns': interns,
+            'profile_missing': False,
+        }
+    )
+
+@login_required
+@role_required(allowed_roles=['company'])
+def interns_attendance(request):
+    today = now().date()
+
+    # Get company supervisor profile
+    try:
+        company_supervisor = CompanySupervisor.objects.get(user=request.user)
+    except CompanySupervisor.DoesNotExist:
+        return render(request, 'company/attendance.html', {
+            'profile_missing': True,
+            'placements': [],
+            'today': today,
+        })
+
+    # Active interns 
+    placements = InternshipPlacement.objects.filter(
+        company_supervisor = company_supervisor,
+        status='Active'
+    ).select_related('student__user')
+
+    # Prefetch today's attendance only
+    placements = placements.prefetch_related(
+        Prefetch(
+            'attendance_set',
+            queryset=Attendance.objects.filter(date=today),
+            to_attr='today_attendance'
+        )
+    )
+
+    # Handle POST (Check-in / Check-out)
+    if request.method == 'POST':
+        placement_id = request.POST.get('placement_id')
+        action = request.POST.get('action')
+
+        placement = get_object_or_404(
+            InternshipPlacement,
+            id=placement_id,
+            company_supervisor = company_supervisor
+        )
+
+        attendance, created = Attendance.objects.get_or_create(
+            placement=placement,
+            date=today,
+            defaults={'check_in': now().time()}
+        )
+
+        if action == 'checkout' and attendance.check_out is None:
+            attendance.check_out = now().time()
+            attendance.save()
+
+        return redirect('interns_attendance')
+
+    context = {
+        'placements': placements,
+        'today': today,
+        'profile_missing': False,
+    }
+
+    return render(request, 'company/attendance.html', context)
 
 @login_required
 @role_required(allowed_roles=['academic'])

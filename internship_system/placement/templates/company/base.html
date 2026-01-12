@@ -1,0 +1,73 @@
+{% load static %}
+
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Dashboard</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <!-- CSS -->
+        <link rel="stylesheet" href="{% static 'placement/assets/css/main.css' %}">
+	</head>
+	<body class="is-preload">
+		<!-- Header -->
+			<div id="header">
+
+				<div class="top">
+
+					<!-- Logo -->
+						<div id="logo">
+							<span class="image avatar48"><img src="images/avatar.jpg" alt="" /></span>
+							<h1 id="title">{{ request.user.username }}</h1>
+							<p>{{ request.user.role }}</p>
+                            <a href="{% url 'logout' %}">Logout</a>
+						</div>
+
+					<!-- Nav -->
+						<nav id="nav">
+							<ul>
+								<li><a href="{% url 'company_dashboard' %}" id="dashboard-link"><span class="icon solid fa-home">Dashboard</span></a></li>
+								<li><a href="#portfolio" id="portfolio-link"><span class="icon solid fa-th">Interns</span></a></li>
+								<li><a href="#" id="about-link"><span class="icon solid fa-user">Internship Application</span></a></li>
+								<li><a href="#contact" id="contact-link"><span class="icon solid fa-envelope">Logbooks</span></a></li>
+                                <li><a href="{% url 'interns_attendance'%}" id="contact-link"><span class="icon solid fa-envelope">Attendance</span></a></li>
+                                <li><a href="#contact" id="contact-link"><span class="icon solid fa-envelope">Evaluation</span></a></li>
+                                <li><a href="#contact" id="contact-link"><span class="icon solid fa-envelope">Notifications</span></a></li>
+							</ul>
+						</nav>
+
+				</div>
+
+				<div class="bottom">
+
+					<!-- Social Icons -->
+						<ul class="icons">
+							<li><a href="#" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
+							<li><a href="#" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
+							<li><a href="#" class="icon brands fa-github"><span class="label">Github</span></a></li>
+							<li><a href="#" class="icon brands fa-dribbble"><span class="label">Dribbble</span></a></li>
+							<li><a href="#" class="icon solid fa-envelope"><span class="label">Email</span></a></li>
+						</ul>
+
+				</div>
+
+			</div>
+
+		<!-- Main -->
+			<div id="main">
+				{% block content %}{% endblock %}
+			</div>
+
+
+		<!-- Scripts -->
+            <script src="{% static 'placement/assets/js/jquery.min.js' %}"></script>
+            <script src="{% static 'placement/assets/js/jquery.scrolly.min.js' %}"></script>
+            <script src="{% static 'placement/assets/js/jquery.scrollex.min.js' %}"></script>
+            <script src="{% static 'placement/assets/js/browser.min.js' %}"></script>
+            <script src="{% static 'placement/assets/js/breakpoints.min.js' %}"></script>
+            <script src="{% static 'placement/assets/js/util.js' %}"></script>
+            <script src="{% static 'placement/assets/js/main.js' %}"></script>
+
+	</body>
+</html>

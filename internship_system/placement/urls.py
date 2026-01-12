@@ -27,6 +27,7 @@ urlpatterns = [
     path('student/internships/', views.internship_list, name='internship_list'),
     path('student/internship/<int:id>/apply/', views.apply_internship, name='apply_internship'),
     path('company/', views.company_dashboard, name='company_dashboard'),
+    path('company/attendance/', views.interns_attendance, name='interns_attendance'),
     path('academic/', views.academic_dashboard, name='academic_dashboard'),
     path('manager/', views.admin, name='admin'),
     path('manager/users/', views.admin_user_list, name='admin_user_list'),

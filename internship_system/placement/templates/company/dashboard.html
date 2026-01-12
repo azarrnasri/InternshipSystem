@@ -1,0 +1,39 @@
+{% extends "Company/base.html" %}
+
+{% block title %}Company Supervisor Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-cards">
+
+    <div class="card">
+        <h3>Total interns</h3>
+        <p>{{ total_interns }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Pending applications</h3>
+        <p>{{ pending_applications }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Logbooks Approval</h3>
+        <p>{{ pending_logbooks }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Attendance</h3>
+        <p>{{ attendance_not_marked }}</p>
+    </div>
+
+    <h3>Intern List</h3>
+    <ul>
+        {% for intern in interns %}
+            <li>{{ intern.user.username }}</li>
+        {% empty %}
+            <li>No interns assigned</li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endblock %}
