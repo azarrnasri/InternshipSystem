@@ -1,0 +1,49 @@
+{% extends "Company/base.html" %}
+
+{% block title %}Interns Attendance Tracking{% endblock %}
+
+{% block content %}
+
+{% if profile_missing %}
+    <div class="alert alert-warning">
+       <p style="color:red;">
+        Company supervisor profile not set up yet.
+        Please contact admin.
+        </p>
+    </div>
+{% else %}
+    {% for placement in placements %}
+        {% with attendance=placement.today_attendance.0 %}
+            <strong>{{ placement.student.user.username }}</strong>
+
+            {% if not attendance %}
+                <!-- Check In -->
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="placement_id" value="{{ placement.id }}">
+                    <input type="hidden" name="action" value="checkin">
+                    <button type="submit">Check In</button>
+                </form>
+
+            {% else %}
+                Check In: {{ attendance.check_in }}
+
+                {% if not attendance.check_out %}
+                    <!-- Check Out -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="placement_id" value="{{ placement.id }}">
+                        <input type="hidden" name="action" value="checkout">
+                        <button type="submit">Check Out</button>
+                    </form>
+                {% else %}
+                    Check Out: {{ attendance.check_out }}
+                {% endif %}
+            {% endif %}
+        {% endwith %}
+    {% empty %}
+        <p>No interns assigned.</p>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}
