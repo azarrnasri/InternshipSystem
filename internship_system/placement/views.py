@@ -88,6 +88,7 @@ def company_dashboard(request):
                 'pending_logbooks': 0,
                 'attendance_not_marked': 0,
                 'interns': [],
+                'pending_evaluation': 0,
                 'profile_missing': True,
             }
         )
@@ -126,6 +127,12 @@ def company_dashboard(request):
         internshipplacement__status = 'Active'
     ).distinct()
 
+    #6. Pending evaluation
+    pending_evaluation = PerformanceEvaluation.objects.filter(
+        company_supervisor = request.user.companysupervisor,
+        company_supervisor_submitted_at__isnull = True
+    ).count()
+
     return render(
         request,
         'company/dashboard.html',
@@ -135,6 +142,7 @@ def company_dashboard(request):
             'pending_logbooks': pending_logbooks,
             'attendance_not_marked': attendance_not_marked,
             'interns': interns,
+            'pending_evaluation': pending_evaluation,
             'profile_missing': False,
         }
     )
@@ -199,6 +207,83 @@ def interns_attendance(request):
     }
 
     return render(request, 'company/attendance.html', context)
+
+@login_required
+@role_required(allowed_roles=['company'])
+def intern_evaluation_list(request):
+    try:
+        company = CompanySupervisor.objects.get(user=request.user)
+    except CompanySupervisor.DoesNotExist:
+        return render(request, 'company/evaluation.html', {
+            'placements': [],
+            'profile_missing': True
+        })
+
+    placements = InternshipPlacement.objects.filter(
+        company_supervisor = company
+    ).select_related('student')
+
+    evaluation_map = {}
+
+    for placement in placements:
+        evaluation_map[placement.id] = PerformanceEvaluation.objects.filter(
+            application__student = placement.student,
+            company_supervisor = company,
+            company_supervisor_submitted_at__isnull=False
+        ).exists()
+
+    context = {
+        'placements': placements,
+        'evaluation_map': evaluation_map,
+        'profile_missing': False
+    }
+
+    return render(request, 'company/evaluation.html', context)
+
+
+@login_required
+@role_required(allowed_roles=['company'])
+def evaluate_intern(request, placement_id):
+    placement = get_object_or_404(
+        InternshipPlacement,
+        id = placement_id,
+        company_supervisor__user=request.user
+    )
+
+    #if placement.status != 'Completed':
+    #    return render(request, 'Company/evaluation_locked.html')
+
+    evaluation, created = PerformanceEvaluation.objects.get_or_create(
+        student = placement.student,
+        company_supervisor = placement.company_supervisor,
+        academic_supervisor = placement.student.academic_supervisor,
+        application=InternshipApplication.objects.filter(
+            student = placement.student
+        ).first()
+    )
+
+    if evaluation.company_supervisor_submitted_at:
+        return render(request, 'company/evaluation_done.html')
+
+    if request.method == 'POST':
+        scores = [
+            int(request.POST['q1']),
+            int(request.POST['q2']),
+            int(request.POST['q3']),
+            int(request.POST['q4']),
+            int(request.POST['q5']),
+        ]
+
+        evaluation.company_supervisor_score = sum(scores)
+        evaluation.company_supervisor_comment = request.POST.get('comment')
+        evaluation.company_supervisor_submitted_at = now()
+        evaluation.save()
+
+        return redirect('evaluation_list')
+
+    return render(request, 'company/evaluation_form.html', {
+        'placement': placement
+    })
 
 @login_required
 @role_required(allowed_roles=['academic'])

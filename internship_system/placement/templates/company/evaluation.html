@@ -1,0 +1,53 @@
+{% extends "Company/base.html" %}
+
+{% block title %}Internship Application List{% endblock %}
+
+{% block content %}
+
+<h2>Intern Evaluations</h2>
+
+{% if profile_missing %}
+    <p>Your supervisor profile is not set up.</p>
+
+{% elif placements %}
+    <table>
+        <tr>
+            <th>Intern</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+        {% for placement in placements %}
+        <tr>
+            <td>{{ placement.student.user.username }}</td>
+
+            <td>
+                {% if evaluation_map|dictsort:placement.id %}
+                    Evaluated
+                {% else %}
+                    Not Evaluated
+                {% endif %}
+            </td>
+
+            <td>
+                {% if placement.status != "Completed" %}
+                    <span>Not accessible yet</span>
+
+                {% elif evaluation_map|dictsort:placement.id %}
+                    <span>Completed</span>
+
+                {% else %}
+                    <a href="{% url 'interns_evaluation' placement.id %}">
+                        Evaluate
+                    </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+{% else %}
+    <p>No interns assigned.</p>
+{% endif %}
+
+{% endblock %}
