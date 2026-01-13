@@ -2263,6 +2263,14 @@ input, select, textarea {
 				background-color: #e8edec;
 			}
 
+			#main > section {
+            min-height: 100vh;          /* fill full screen height */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;    /* vertical centering */
+		}
+
+
 /* Wide */
 
 	@media screen and (min-width: 961px) and (max-width: 1880px) {
@@ -2639,3 +2647,237 @@ input, select, textarea {
     height: 100vh;            /* full viewport height */
     background-color: #f5f5f5; /* optional: background */
 }
+
+/* =========================
+   PROFILE WRAPPER
+   ========================= */
+
+.profile-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2em;
+}
+
+/* =========================
+   HEADINGS
+   ========================= */
+
+.profile-wrapper h2,
+#main h2 {
+  color: #444;
+  margin-bottom: 1em;
+}
+
+.profile-wrapper h3 {
+  margin-top: 2.5em;
+  margin-bottom: 1em;
+  font-size: 16px;
+  color: #555;
+  border-bottom: 1px solid rgba(0,0,0,0.15);
+  padding-bottom: 0.3em;
+}
+
+/* =========================
+   ALERT
+   ========================= */
+
+.alert {
+  background: rgba(255, 230, 230, 0.7);
+  backdrop-filter: blur(6px);
+  border-left: 4px solid #e27689;
+  padding: 1em 1.2em;
+  border-radius: 0.5em;
+  margin-bottom: 2em;
+  color: #555;
+}
+
+/* =========================
+   GLASS CARD BASE
+   ========================= */
+
+.academic-info,
+.document-table,
+form {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 0.6em;
+  margin-bottom: 2em;
+  border: 1px solid #000000;
+}
+
+/* =========================
+   ACADEMIC INFO TABLE
+   ========================= */
+
+.academic-info {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+}
+
+.academic-info th {
+  width: 35%;
+  background: rgba(34, 38, 41, 0.85);
+  color: #fff;
+  font-weight: 400;
+  padding: 0.9em 1em;
+  text-align: left;
+  font-size: 16px;
+}
+
+.academic-info td {
+  background: rgba(255, 255, 255, 0.75);
+  color: #444;
+  padding: 0.9em 1em;
+  font-size: 16px;
+}
+
+/* =========================
+   BUTTONS
+   ========================= */
+
+.btn,
+.edit-btn,
+.delete-btn,
+button {
+  display: inline-block;
+  padding: 0.5em 1.1em;
+  border-radius: 0.4em;
+  font-size: 16px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn,
+.edit-btn,
+button {
+  background: #8ebebc;
+  color: #fff;
+}
+
+.btn:hover,
+.edit-btn:hover,
+button:hover {
+  background: #7aaead;
+}
+
+.delete-btn {
+  background: #e27689;
+  color: #fff;
+}
+
+.delete-btn:hover {
+  background: #cf5f72;
+}
+
+/* =========================
+   DOCUMENT TABLE
+   ========================= */
+
+.document-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ddd;
+  border-radius: 0.35em;
+  overflow: hidden;
+  margin-bottom: 1.5em;
+  box-shadow: 0 0.05em 0.15em rgba(0,0,0,0.05);
+}
+
+.document-table th {
+  width: 30%;
+  background: rgba(34, 38, 41, 0.85);
+  color: #fff;
+  padding: 0.8em 1em;
+  text-align: left;
+  font-size: 16px;
+}
+
+.document-table td {
+  background: rgba(255, 255, 255, 0.75);
+  padding: 0.8em 1em;
+  color: #444;
+  font-size: 16px;
+}
+
+.document-actions {
+  text-align: right;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* =========================
+   FORMS
+   ========================= */
+
+form {
+  padding: 1.5em;
+}
+
+form p {
+  margin-bottom: 1.2em;
+}
+
+form input,
+form select {
+  width: 100%;
+  padding: 0.5em;
+  border-radius: 0.3em;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.profile-wrapper form {
+  background: #fff;
+  padding: 1.5em;
+  border-radius: 0.35em;
+  box-shadow: 0 0.05em 0.2em rgba(0, 0, 0, 0.08);
+  margin-bottom: 2em;
+}
+
+.profile-wrapper form p {
+  margin-bottom: 1.2em;
+}
+
+.form-wrapper {
+  max-width: 700px;        /* controls left & right spacing */
+  margin: 0 auto;          /* center horizontally */
+  padding: 2.5rem 2rem;    /* inner spacing */
+}
+
+.form-card {
+  background: rgba(255, 255, 255, 0.5); /* soft glass effect */
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.form-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+}
+
+
+/* =========================
+   MOBILE RESPONSIVE
+   ========================= */
+
+@media screen and (max-width: 768px) {
+  .profile-wrapper {
+    padding: 1em;
+  }
+
+  .academic-info th,
+  .document-table th {
+    width: 40%;
+  }
+}
+
+
+
