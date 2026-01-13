@@ -1,7 +1,8 @@
 # Create your views here.
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
 from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.db.models import Q
@@ -455,30 +456,65 @@ def student_profile(request):
 
     documents = Document.objects.filter(student=student)
 
-    if request.method == 'POST':
-        student_form = StudentProfileForm(request.POST, instance=request.user)
-        doc_form = DocumentUploadForm(request.POST, request.FILES)
-
-        if student_form.is_valid():
-            student_form.save()
-
-        if doc_form.is_valid():
-            doc = doc_form.save(commit=False)
-            doc.student = student
-            doc.save()
-
-        return redirect('student_profile')
-
-    else:
-        student_form = StudentProfileForm(instance=request.user)
-        doc_form = DocumentUploadForm()
-
     return render(request, 'student/profile.html', {
         'student': student,
-        'student_form': student_form,
-        'doc_form': doc_form,
         'documents': documents
     })
+
+@login_required
+@role_required(allowed_roles=['student'])
+def update_email(request):
+    if request.method == 'POST':
+        form = StudentProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('student_profile')
+    else:
+        form = StudentProfileForm(instance=request.user)
+
+    return render(request, 'student/update_email.html', {
+        'form': form,
+        'current_email': request.user.email
+    })
+
+@login_required
+@role_required(allowed_roles=['student'])
+def upload_document(request):
+    student = Student.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        form = DocumentUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            doc = form.save(commit=False)
+            doc.student = student
+            doc.save()
+            return redirect('student_profile')
+    else:
+        form = DocumentUploadForm()
+
+    return render(request, 'student/upload_document.html', {
+        'form': form
+    })
+
+def edit_document(request, doc_id):
+    doc = get_object_or_404(Document, id=doc_id, student=request.user.student)
+    if request.method == 'POST':
+        form = DocumentUploadForm(request.POST, request.FILES, instance=doc)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Document updated successfully.')
+            return redirect('student_profile')  
+    else:
+        form = DocumentUploadForm(instance=doc)
+    return render(request, 'student/edit_document.html', {'form': form, 'doc': doc})
+
+def delete_document(request, doc_id):
+    doc = get_object_or_404(Document, id=doc_id, student=request.user.student)
+    if request.method == 'POST':
+        doc.delete()
+        messages.success(request, 'Document deleted successfully.')
+        return redirect('student_profile')  
+    return render(request, 'student/delete_document.html', {'doc': doc})
 
 #Internship detail
 @login_required

@@ -2,12 +2,17 @@
 
 {% block content %}
 
+<div class="form-wrapper">
+
 <h2>Upload Document</h2>
 
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
   {{ form.as_p }}
+  <div class="form-actions">
   <button type="submit">Upload</button>
+  </div>
 </form>
 
+</div>
 {% endblock %}
