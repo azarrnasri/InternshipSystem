@@ -1,0 +1,58 @@
+{% extends "Company/base.html" %}
+
+{% block title %}Interns Evaluation Form{% endblock %}
+
+{% block content %}
+
+<h2>Evaluate {{ placement.student.user.username }}</h2>
+
+<form method="post">
+{% csrf_token %}
+
+<p>1. The intern performs assigned tasks responsibly</p>
+<label><input type="radio" name="q1" value="5" required> Excellent</label>
+<label><input type="radio" name="q1" value="4"> Very Good</label>
+<label><input type="radio" name="q1" value="3"> Good</label>
+<label><input type="radio" name="q1" value="2"> Fair</label>
+<label><input type="radio" name="q1" value="1"> Poor</label>
+
+<hr>
+
+<p>2. The intern demonstrates technical competence</p>
+<label><input type="radio" name="q2" value="5" required> Excellent</label>
+<label><input type="radio" name="q2" value="4"> Very Good</label>
+<label><input type="radio" name="q2" value="3"> Good</label>
+<label><input type="radio" name="q2" value="2"> Fair</label>
+<label><input type="radio" name="q2" value="1"> Poor</label>
+
+<p>3. The intern communicates effectively</p>
+<label><input type="radio" name="q3" value="5" required> Excellent</label>
+<label><input type="radio" name="q3" value="4"> Very Good</label>
+<label><input type="radio" name="q3" value="3"> Good</label>
+<label><input type="radio" name="q3" value="2"> Fair</label>
+<label><input type="radio" name="q3" value="1"> Poor</label>
+
+<p>4. The intern shows professionalism and discipline</p>
+<label><input type="radio" name="q4" value="5" required> Excellent</label>
+<label><input type="radio" name="q4" value="4"> Very Good</label>
+<label><input type="radio" name="q4" value="3"> Good</label>
+<label><input type="radio" name="q4" value="2"> Fair</label>
+<label><input type="radio" name="q4" value="1"> Poor</label>
+
+<p>5. The intern adapts well to the working environment</p>
+<label><input type="radio" name="q5" value="5" required> Excellent</label>
+<label><input type="radio" name="q5" value="4"> Very Good</label>
+<label><input type="radio" name="q5" value="3"> Good</label>
+<label><input type="radio" name="q5" value="2"> Fair</label>
+<label><input type="radio" name="q5" value="1"> Poor</label>
+
+<hr>
+
+<p>Supervisor Comment (Optional)</p>
+<textarea name="comment"></textarea>
+
+<br><br>
+<button type="submit">Submit Evaluation</button>
+</form>
+
+{% endblock %}
