@@ -1,16 +1,16 @@
-# Create your views here.
-from django.shortcuts import render, redirect, get_object_or_404, redirect
+
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db import transaction
 from django.views.decorators.http import require_POST
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.utils import timezone
 from .decorators import role_required
-from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm
+from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm
 from django.utils.timezone import now
-from django.db.models import Prefetch
+from django.http import JsonResponse
 from .models import (
     User,
     Student, 
@@ -23,8 +23,14 @@ from .models import (
     Document,
     Internship,
     InternshipApplication,
-    InternshipPlacement
+    InternshipPlacement,
+    Department
 )
+
+def departments_by_company(request, company_id):
+    """Return JSON list of departments for a given company."""
+    departments = Department.objects.filter(company_id=company_id).values('id', 'name')
+    return JsonResponse(list(departments), safe=False)
 
 # --- Login View ---
 def login_view(request):
@@ -507,15 +513,42 @@ def admin_edit_company(request, company_id):
     company = get_object_or_404(Company, id=company_id)
 
     if request.method == 'POST':
+        # 1️⃣ Update company
         company.company_name = request.POST.get('company_name')
         company.address = request.POST.get('address')
         company.save()
+
+        # 2️⃣ Update existing departments
+        dept_ids = request.POST.getlist('dept_id[]')
+        dept_names = request.POST.getlist('dept_name[]')
+        delete_ids = request.POST.getlist('dept_delete[]')
+
+        for dept_id, name in zip(dept_ids, dept_names):
+            if dept_id in delete_ids:
+                Department.objects.filter(id=dept_id, company=company).delete()
+            else:
+                Department.objects.filter(id=dept_id, company=company).update(
+                    name=name.strip()
+                )
+
+        # 3️⃣ Add new departments
+        new_departments = request.POST.get('new_departments', '')
+        if new_departments:
+            for name in new_departments.split(','):
+                name = name.strip()
+                if name:
+                    Department.objects.get_or_create(
+                        company=company,
+                        name=name
+                    )
+
         return redirect('admin_company_list')
 
     return render(request, 'admin/admin_company_form.html', {
         'company': company,
         'is_edit': True
     })
+
 
 
 @login_required
@@ -526,6 +559,71 @@ def admin_delete_company(request, company_id):
 
     company.delete()
     return redirect('admin_company_list')
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_internships_list(request):
+    internships = (
+        Internship.objects
+        .select_related('company')
+        .order_by('company__company_name', 'title')
+    )
+
+    return render(
+        request,
+        'admin/admin_internships_list.html',
+        {
+            'internships': internships
+        }
+    )
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_add_internship(request):
+    if request.method == 'POST':
+        form = InternshipForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('admin_internships_list')
+    else:
+        form = InternshipForm()
+
+    return render(request, 'admin/admin_internships_form.html', {
+        'form': form,
+        'is_edit': False
+    })
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_edit_internship(request, internship_id):
+    # Get the internship instance
+    internship = get_object_or_404(Internship, pk=internship_id)
+
+    if request.method == 'POST':
+        form = InternshipForm(request.POST, instance=internship)
+        if form.is_valid():
+            form.save()
+            return redirect('admin_internships_list')
+    else:
+        form = InternshipForm(instance=internship)
+
+    return render(request, 'admin/admin_internships_form.html', {
+        'form': form,
+        'is_edit': True
+    })
+
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_delete_internship(request, internship_id):
+    internship = get_object_or_404(Internship, id=internship_id)
+    internship.delete()
+    messages.success(request, f'Internship "{internship.title}" has been deleted.')
+    return redirect('admin_internships_list')
 
 
 #student manage profile and upload docs

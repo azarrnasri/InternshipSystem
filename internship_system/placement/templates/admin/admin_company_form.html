@@ -23,6 +23,43 @@
               required>{{ company.address|default:'' }}</textarea>
     <br><br>
 
+
+
+    {% if is_edit %}
+<hr>
+
+<h3>Departments</h3>
+
+<div id="departments">
+    {% for dept in company.departments.all %}
+        <div style="margin-bottom:6px;">
+            <input type="hidden" name="dept_id[]" value="{{ dept.id }}">
+            <input type="text"
+                   name="dept_name[]"
+                   value="{{ dept.name }}"
+                   placeholder="Department name">
+
+            <label>
+                <input type="checkbox" name="dept_delete[]" value="{{ dept.id }}">
+                Delete
+            </label>
+        </div>
+    {% empty %}
+        <em>No departments yet</em>
+    {% endfor %}
+</div>
+
+<br>
+
+<input type="text" name="new_departments" placeholder="Add departments (comma separated)">
+<p style="font-size:12px;color:#666;">
+    Example: IT, HR, Marketing
+</p>
+{% endif %}
+
+
+
+
     <button type="submit">
         {% if is_edit %}Update{% else %}Create{% endif %}
     </button>

@@ -17,7 +17,7 @@ def create_role_profile(sender, instance, created, **kwargs):
     elif instance.role == 'academic':
         AcademicSupervisor.objects.get_or_create(
             user=instance,
-            defaults={'department': ''}
+            defaults={'faculty': ''}
         )
 
     elif instance.role == 'company':

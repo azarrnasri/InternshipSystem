@@ -78,6 +78,34 @@ document.addEventListener('DOMContentLoaded', function () {
   toggleFields();
 });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const companySelect = document.getElementById('id_company');
+    const departmentSelect = document.getElementById('id_department');
+
+    if (!companySelect || !departmentSelect) return;
+
+    companySelect.addEventListener('change', function () {
+        const companyId = this.value;
+
+        departmentSelect.innerHTML = '<option value="">---------</option>';
+
+        if (!companyId) return;
+
+        fetch(`/admin/departments/by-company/${companyId}/`)
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.id;
+                    option.textContent = dept.name;
+                    departmentSelect.appendChild(option);
+                });
+            });
+    });
+});
+</script>
+
 
 
 </html>

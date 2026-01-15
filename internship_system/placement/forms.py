@@ -1,6 +1,8 @@
 from django import forms
-from .models import User, Student, AcademicSupervisor, CompanySupervisor, InternshipApplication, Document
+from .models import User, Student, AcademicSupervisor, CompanySupervisor, InternshipApplication, Document, Internship, Company, Department
 from django.contrib.auth import get_user_model
+from django import forms
+
 
 User = get_user_model()
 
@@ -32,12 +34,86 @@ class StudentForm(forms.ModelForm):
 class AcademicSupervisorForm(forms.ModelForm):
     class Meta:
         model = AcademicSupervisor
-        fields = ['department']
+        fields = ['faculty']
+
+
+
+# forms.py
+
+class InternshipForm(forms.ModelForm):
+    class Meta:
+        model = Internship
+        fields = [
+            'company',
+            'department',
+            'title',
+            'description',
+            'requirements',
+            'location',
+            'start_date',
+            'end_date',
+            'total_slots',
+            'status',
+        ]
+        widgets = {
+            'company': forms.Select(attrs={'class': 'form-control'}),
+            'department': forms.Select(attrs={'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Internship title'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'requirements': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'total_slots': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Default: no departments until a company is chosen
+        self.fields['department'].queryset = Department.objects.none()
+
+        # If editing existing internship or company is pre-selected
+        if 'company' in self.data:
+            try:
+                company_id = int(self.data.get('company'))
+                self.fields['department'].queryset = Department.objects.filter(company_id=company_id)
+            except (ValueError, TypeError):
+                pass  # invalid input; leave empty
+        elif self.instance.pk and self.instance.company:
+            self.fields['department'].queryset = Department.objects.filter(company=self.instance.company)
+
+
+
 
 class CompanySupervisorForm(forms.ModelForm):
     class Meta:
         model = CompanySupervisor
-        fields = ['company']
+        fields = ['company', 'department']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Default: no departments until company is chosen
+        self.fields['department'].queryset = Department.objects.none()
+
+        # Editing existing supervisor
+        if self.instance.pk and self.instance.company:
+            self.fields['department'].queryset = (
+                Department.objects.filter(company=self.instance.company)
+            )
+
+        # Company selected in POST (Add form)
+        elif 'company' in self.data:
+            try:
+                company_id = int(self.data.get('company'))
+                self.fields['department'].queryset = (
+                    Department.objects.filter(company_id=company_id)
+                )
+            except (ValueError, TypeError):
+                pass
+
 
 class InternshipApplicationForm(forms.ModelForm):
     class Meta:
