@@ -1,0 +1,21 @@
+{% extends 'student/base.html' %}
+
+{% block content %}
+
+<div class="form-wrapper">
+
+  <h2>Update Email</h2>
+
+  <p>Current Email: <strong>{{ current_email }}</strong></p>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+
+  <div class="form-actions">
+  <button type="submit">Save</button>
+  </div>
+</form>
+
+</div>
+{% endblock %}

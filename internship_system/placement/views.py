@@ -1,17 +1,16 @@
-# Create your views here.
+
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
 from django.db import transaction
 from django.views.decorators.http import require_POST
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.utils import timezone
 from .decorators import role_required
 from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm
 from django.utils.timezone import now
 from django.http import JsonResponse
-from django.db.models import Prefetch
 from .models import (
     User,
     Student, 
@@ -95,6 +94,7 @@ def company_dashboard(request):
                 'pending_logbooks': 0,
                 'attendance_not_marked': 0,
                 'interns': [],
+                'pending_evaluation': 0,
                 'profile_missing': True,
             }
         )
@@ -133,6 +133,12 @@ def company_dashboard(request):
         internshipplacement__status = 'Active'
     ).distinct()
 
+    #6. Pending evaluation
+    pending_evaluation = PerformanceEvaluation.objects.filter(
+        company_supervisor = request.user.companysupervisor,
+        company_supervisor_submitted_at__isnull = True
+    ).count()
+
     return render(
         request,
         'company/dashboard.html',
@@ -142,6 +148,7 @@ def company_dashboard(request):
             'pending_logbooks': pending_logbooks,
             'attendance_not_marked': attendance_not_marked,
             'interns': interns,
+            'pending_evaluation': pending_evaluation,
             'profile_missing': False,
         }
     )
@@ -206,6 +213,83 @@ def interns_attendance(request):
     }
 
     return render(request, 'company/attendance.html', context)
+
+@login_required
+@role_required(allowed_roles=['company'])
+def intern_evaluation_list(request):
+    try:
+        company = CompanySupervisor.objects.get(user=request.user)
+    except CompanySupervisor.DoesNotExist:
+        return render(request, 'company/evaluation.html', {
+            'placements': [],
+            'profile_missing': True
+        })
+
+    placements = InternshipPlacement.objects.filter(
+        company_supervisor = company
+    ).select_related('student')
+
+    evaluation_map = {}
+
+    for placement in placements:
+        evaluation_map[placement.id] = PerformanceEvaluation.objects.filter(
+            application__student = placement.student,
+            company_supervisor = company,
+            company_supervisor_submitted_at__isnull=False
+        ).exists()
+
+    context = {
+        'placements': placements,
+        'evaluation_map': evaluation_map,
+        'profile_missing': False
+    }
+
+    return render(request, 'company/evaluation.html', context)
+
+
+@login_required
+@role_required(allowed_roles=['company'])
+def evaluate_intern(request, placement_id):
+    placement = get_object_or_404(
+        InternshipPlacement,
+        id = placement_id,
+        company_supervisor__user=request.user
+    )
+
+    #if placement.status != 'Completed':
+    #    return render(request, 'Company/evaluation_locked.html')
+
+    evaluation, created = PerformanceEvaluation.objects.get_or_create(
+        student = placement.student,
+        company_supervisor = placement.company_supervisor,
+        academic_supervisor = placement.student.academic_supervisor,
+        application=InternshipApplication.objects.filter(
+            student = placement.student
+        ).first()
+    )
+
+    if evaluation.company_supervisor_submitted_at:
+        return render(request, 'company/evaluation_done.html')
+
+    if request.method == 'POST':
+        scores = [
+            int(request.POST['q1']),
+            int(request.POST['q2']),
+            int(request.POST['q3']),
+            int(request.POST['q4']),
+            int(request.POST['q5']),
+        ]
+
+        evaluation.company_supervisor_score = sum(scores)
+        evaluation.company_supervisor_comment = request.POST.get('comment')
+        evaluation.company_supervisor_submitted_at = now()
+        evaluation.save()
+
+        return redirect('evaluation_list')
+
+    return render(request, 'company/evaluation_form.html', {
+        'placement': placement
+    })
 
 @login_required
 @role_required(allowed_roles=['academic'])
@@ -555,30 +639,65 @@ def student_profile(request):
 
     documents = Document.objects.filter(student=student)
 
-    if request.method == 'POST':
-        student_form = StudentProfileForm(request.POST, instance=request.user)
-        doc_form = DocumentUploadForm(request.POST, request.FILES)
-
-        if student_form.is_valid():
-            student_form.save()
-
-        if doc_form.is_valid():
-            doc = doc_form.save(commit=False)
-            doc.student = student
-            doc.save()
-
-        return redirect('student_profile')
-
-    else:
-        student_form = StudentProfileForm(instance=request.user)
-        doc_form = DocumentUploadForm()
-
     return render(request, 'student/profile.html', {
         'student': student,
-        'student_form': student_form,
-        'doc_form': doc_form,
         'documents': documents
     })
+
+@login_required
+@role_required(allowed_roles=['student'])
+def update_email(request):
+    if request.method == 'POST':
+        form = StudentProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('student_profile')
+    else:
+        form = StudentProfileForm(instance=request.user)
+
+    return render(request, 'student/update_email.html', {
+        'form': form,
+        'current_email': request.user.email
+    })
+
+@login_required
+@role_required(allowed_roles=['student'])
+def upload_document(request):
+    student = Student.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        form = DocumentUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            doc = form.save(commit=False)
+            doc.student = student
+            doc.save()
+            return redirect('student_profile')
+    else:
+        form = DocumentUploadForm()
+
+    return render(request, 'student/upload_document.html', {
+        'form': form
+    })
+
+def edit_document(request, doc_id):
+    doc = get_object_or_404(Document, id=doc_id, student=request.user.student)
+    if request.method == 'POST':
+        form = DocumentUploadForm(request.POST, request.FILES, instance=doc)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Document updated successfully.')
+            return redirect('student_profile')  
+    else:
+        form = DocumentUploadForm(instance=doc)
+    return render(request, 'student/edit_document.html', {'form': form, 'doc': doc})
+
+def delete_document(request, doc_id):
+    doc = get_object_or_404(Document, id=doc_id, student=request.user.student)
+    if request.method == 'POST':
+        doc.delete()
+        messages.success(request, 'Document deleted successfully.')
+        return redirect('student_profile')  
+    return render(request, 'student/delete_document.html', {'doc': doc})
 
 #Internship detail
 @login_required

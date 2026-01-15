@@ -24,10 +24,16 @@ urlpatterns = [
     path('dashboard/', views.dashboard_redirect, name='dashboard'),  # redirect based on role
     path('student/dashboard/', views.student_dashboard, name='student_dashboard'),
     path('student/profile/', views.student_profile, name='student_profile'),
+    path('student/profile/email/', views.update_email, name='update_email'),
+    path('student/profile/upload/', views.upload_document, name='upload_document'),
+    path('document/edit/<int:doc_id>/', views.edit_document, name='edit_document'),
+    path('document/delete/<int:doc_id>/', views.delete_document, name='delete_document'),
     path('student/internships/', views.internship_list, name='internship_list'),
     path('student/internship/<int:id>/apply/', views.apply_internship, name='apply_internship'),
     path('company/', views.company_dashboard, name='company_dashboard'),
     path('company/attendance/', views.interns_attendance, name='interns_attendance'),
+    path('company/evaluation/', views.intern_evaluation_list, name='evaluation_list'),
+    path('company/evaluation_form/<int:placement_id>', views.evaluate_intern, name='interns_evaluation'),
     path('academic/', views.academic_dashboard, name='academic_dashboard'),
     path('manager/', views.admin, name='admin'),
     path('manager/users/', views.admin_user_list, name='admin_user_list'),
@@ -45,15 +51,10 @@ urlpatterns = [
     path('manager/internships/delete/<int:internship_id>/', views.admin_delete_internship, name='admin_delete_internship'),
     # AJAX endpoint for departments
     path('manager/departments/by-company/<int:company_id>/', views.departments_by_company, name='departments_by_company'),
-
-
-
-    
-
+    path('academic/dashboard/', views.academic_dashboard, name='academic_dashboard'),
     # Add this redirect
     path('academic/', lambda request: redirect('academic_dashboard')),
     path('academic/dashboard/', views.academic_dashboard, name='academic_dashboard'),
     path('academic/student/<int:student_id>/', views.academic_student_detail, name='academic_student_detail'),
     path('academic/evaluation/<int:eval_id>/submit/', views.submit_academic_evaluation, name='submit_academic_evaluation'),
 ]
-

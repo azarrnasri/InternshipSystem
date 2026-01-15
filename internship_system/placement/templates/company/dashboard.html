@@ -4,36 +4,60 @@
 
 {% block content %}
 
-<div class="dashboard-cards">
+<head>
+		<title>{% block title %}Dashboard{% endblock %}</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <!-- CSS -->
+        <link rel="stylesheet" href="{% static 'placement/assets/css/company.css' %}">
+</head>
 
-    <div class="card">
-        <h3>Total interns</h3>
-        <p>{{ total_interns }}</p>
+<body>
+
+    <header class="greeting">
+            <p>Welcome, {{ request.user.username }} !</p>
+    </header>
+
+    <div class="dashboard-cards">
+
+        <a href="{% url 'company_dashboard' %}" class="card">
+            <h3>Total Interns</h3>
+            <p>{{ total_interns }}</p>
+        </a>
+
+        <a href="{% url 'company_applications' %}" class="card">
+            <h3>Pending Applications</h3>
+            <p>{{ pending_applications }}</p>
+        </a>
+
+        <a href="#" class="card">
+            <h3>Logbooks Approval</h3>
+            <p>{{ pending_logbooks }}</p>
+        </a>
+
+        <a href="{% url 'interns_attendance' %}" class="card">
+            <h3>Attendance</h3>
+            <p>{{ attendance_not_marked }}</p>
+        </a>
+
+        <a href="{% url 'evaluation_list' %}" class="card">
+            <h3>Pending Evaluation</h3>
+            <p>{{ pending_evaluation }}</p>
+        </a>
+
     </div>
 
-    <div class="card">
-        <h3>Pending applications</h3>
-        <p>{{ pending_applications }}</p>
+    <div class="intern-list">
+        <h3>Intern List</h3>
+        <ul>
+            {% for intern in interns %}
+                <li>{{ intern.user.username }}</li>
+            {% empty %}
+                <li class="empty">No interns assigned</li>
+            {% endfor %}
+        </ul>
     </div>
 
-    <div class="card">
-        <h3>Logbooks Approval</h3>
-        <p>{{ pending_logbooks }}</p>
-    </div>
-
-    <div class="card">
-        <h3>Attendance</h3>
-        <p>{{ attendance_not_marked }}</p>
-    </div>
-
-    <h3>Intern List</h3>
-    <ul>
-        {% for intern in interns %}
-            <li>{{ intern.user.username }}</li>
-        {% empty %}
-            <li>No interns assigned</li>
-        {% endfor %}
-    </ul>
-</div>
+</body>
 
 {% endblock %}
