@@ -15,11 +15,15 @@ class StudentAdmin(admin.ModelAdmin):
 
 @admin.register(AcademicSupervisor)
 class AcademicSupervisorAdmin(admin.ModelAdmin):
-    list_display = ('user', 'department')
+    list_display = ('user', 'faculty')
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
     list_display = ('company_name',)
+
+@admin.register(Department)
+class DepartmentAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
 
 @admin.register(CompanySupervisor)
 class CompanySupervisorAdmin(admin.ModelAdmin):

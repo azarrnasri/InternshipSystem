@@ -14,15 +14,32 @@
 <tr>
     <th>Company Name</th>
     <th>Address</th>
+    <th>Departments</th>
     <th>Actions</th>
 </tr>
+
 
 {% for company in companies %}
 <tr>
     <td>{{ company.company_name }}</td>
     <td>{{ company.address }}</td>
-    <td style="min-width:160px;">
 
+    <!-- Departments column -->
+    <td>
+        {% if company.departments.all %}
+            <ul style="margin:0; padding-left:18px;">
+                {% for dept in company.departments.all %}
+                    <li>{{ dept.name }}</li>
+                {% empty %}
+                    <em>No departments</em>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <em>No departments</em>
+        {% endif %}
+    </td>
+
+    <td style="min-width:160px;">
         <a href="{% url 'admin_edit_company' company.id %}">
             <button>Edit</button>
         </a>
@@ -34,14 +51,15 @@
             {% csrf_token %}
             <button type="submit">Delete</button>
         </form>
-
     </td>
 </tr>
 {% empty %}
 <tr>
-    <td colspan="3">No companies found</td>
+    <td colspan="4">No companies found</td>
 </tr>
 {% endfor %}
+
+
 </table>
 
 <br>

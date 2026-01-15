@@ -38,11 +38,21 @@ urlpatterns = [
     path('manager/companies/add/', views.admin_add_company, name='admin_add_company'),
     path('manager/companies/edit/<int:company_id>/', views.admin_edit_company, name='admin_edit_company'),
     path('manager/companies/delete/<int:company_id>/', views.admin_delete_company, name='admin_delete_company'),
-    path('academic/dashboard/', views.academic_dashboard, name='academic_dashboard'),
+    path('manager/internships/', views.admin_internships_list, name='admin_internships_list'),
+    path('manager/internships/add/', views.admin_add_internship, name='admin_add_internship'),
+    path('manager/internships/edit/<int:internship_id>/', views.admin_edit_internship, name='admin_edit_internship'),
+
+    path('manager/internships/delete/<int:internship_id>/', views.admin_delete_internship, name='admin_delete_internship'),
+    # AJAX endpoint for departments
+    path('manager/departments/by-company/<int:company_id>/', views.departments_by_company, name='departments_by_company'),
+
+
+
+    
 
     # Add this redirect
     path('academic/', lambda request: redirect('academic_dashboard')),
-
+    path('academic/dashboard/', views.academic_dashboard, name='academic_dashboard'),
     path('academic/student/<int:student_id>/', views.academic_student_detail, name='academic_student_detail'),
     path('academic/evaluation/<int:eval_id>/submit/', views.submit_academic_evaluation, name='submit_academic_evaluation'),
 ]

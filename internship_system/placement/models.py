@@ -18,7 +18,7 @@ class User(AbstractUser):
 # Academic Supervisor
 class AcademicSupervisor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    department = models.CharField(max_length=100)
+    faculty = models.CharField(max_length=100)
 
     def save(self, *args, **kwargs):
         if self.user.role != 'academic':
@@ -58,10 +58,29 @@ class Company(models.Model):
     def __str__(self):
         return self.company_name
     
+
+class Department(models.Model):
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name='departments',
+        null=True,
+        blank=True
+    )
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ('company', 'name')
+
+    def __str__(self):
+        return f"{self.company.company_name} - {self.name}"
+
+    
 # Company Supervisor
 class CompanySupervisor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.user.role != 'company':
@@ -70,6 +89,7 @@ class CompanySupervisor(models.Model):
 
     def __str__(self):
         return self.user.username
+
     
 # Internship
 class Internship(models.Model):
@@ -80,6 +100,7 @@ class Internship(models.Model):
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     title = models.CharField(max_length=150)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     description = models.TextField()
     requirements = models.TextField(null=True, blank=True)
     location = models.CharField(max_length=100)
