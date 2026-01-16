@@ -22,6 +22,9 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_redirect, name='dashboard'),  # redirect based on role
+    path('notifications/', views.notifications, name='notifications'),
+    path('notifications/read/<int:pk>/', views.mark_notification_read, name='mark_notification_read'),
+
     path('student/dashboard/', views.student_dashboard, name='student_dashboard'),
     path('student/profile/', views.student_profile, name='student_profile'),
     path('student/profile/email/', views.update_email, name='update_email'),
@@ -30,11 +33,17 @@ urlpatterns = [
     path('document/delete/<int:doc_id>/', views.delete_document, name='delete_document'),
     path('student/internships/', views.internship_list, name='internship_list'),
     path('student/internship/<int:id>/apply/', views.apply_internship, name='apply_internship'),
+    path('student/offers/', views.student_offers, name='student_offers'),
+    path('student/offers/<int:pk>/accept/', views.accept_offer, name='accept_offer'),
+    path('student/offers/<int:pk>/reject/', views.reject_offer, name='reject_offer'),
 
     path('company/', views.company_dashboard, name='company_dashboard'),
     path('company/attendance/', views.interns_attendance, name='interns_attendance'),
     path('company/evaluation/', views.intern_evaluation_list, name='evaluation_list'),
     path('company/evaluation_form/<int:placement_id>', views.evaluate_intern, name='interns_evaluation'),
+    path('company/applications/', views.supervisor_applications, name='supervisor_applications'),
+    path('company/application/<int:application_id>/offer/', views.supervisor_decide, name='offer_application'),
+
 
     path('academic/', views.academic_dashboard, name='academic_dashboard'),
 

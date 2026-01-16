@@ -1,0 +1,21 @@
+<h2>Internship Offers</h2>
+
+{% if offers %}
+  {% for app in offers %}
+    <div class="card">
+      <h3>{{ app.internship.title }}</h3>
+      <p><strong>Company:</strong> {{ app.internship.company.company_name }}</p>
+      <p><strong>Supervisor:</strong> {{ app.handled_by.user.username }}</p>
+
+    <a href="{% url 'accept_offer' app.id %}">
+        <button>Accept</button>
+    </a>
+
+    <a href="{% url 'reject_offer' app.id %}">
+        <button>Reject</button>
+    </a>
+    </div>
+  {% endfor %}
+{% else %}
+  <p>No offers at the moment.</p>
+{% endif %}

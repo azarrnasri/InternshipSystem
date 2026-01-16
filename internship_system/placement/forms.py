@@ -133,6 +133,14 @@ class DocumentUploadForm(forms.ModelForm):
 
     def clean_file(self):
         file = self.cleaned_data.get('file')
-        if file.content_type not in ALLOWED_TYPES:
-            raise forms.ValidationError("Only PDF or Word documents are allowed.")
+
+        if not file:
+            return file
+        
+        if hasattr(file, 'content_type'):
+            if file.content_type not in ALLOWED_TYPES:
+                raise forms.ValidationError("Invalid file type")
+
         return file
+    
+        

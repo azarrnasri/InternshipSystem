@@ -29,12 +29,13 @@
 					<!-- Nav -->
 						<nav id="nav">
 							<ul>
-								<li><a href="{% url 'student_dashboard' %}">Dashboard</a></li>
-								<li><a href="{% url 'student_profile' %}">My Profile</a></li>
-								<li><a href="{% url 'internship_list' %}">Internship Opportunities</a></li>
-								<li><a href="#">My Applications</a></li>
-								<li><a href="#">Logbook</a></li>
-								<li><a href="#">Attendance</a></li>
+								<li><a href="{% url 'student_dashboard' %}"id="dashboard-link"><span class="icon solid fa-home">Dashboard</span></a></li>
+								<li><a href="{% url 'student_profile' %}"id="portfolio-link"><span class="icon solid fa-user">My Profile</span></a></li>
+								<li><a href="{% url 'internship_list' %}"id="about-link"><span class="icon solid fa-briefcase">Internship Opportunities</span></a></li>
+								<li><a href="{% url 'student_offers' %}"id="contact-link"><span class="icon solid fa-check">My Application</span></a></li>
+								<li><a href="#"id="contact-link"><span class="icon solid fa-address-book">Logbook</span></a></li>
+								<li><a href="#" id="contact-link"><span class="icon solid fa-calendar">Attendance</span></a></li>
+								<li><a href="{% url 'notifications' %}"><span class="icon solid fa-bell">Notifications</span></li>
 							</ul>
 						</nav>
 

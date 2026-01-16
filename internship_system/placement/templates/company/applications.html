@@ -1,0 +1,27 @@
+
+
+<h2>Internship Applications</h2>
+
+{% for app in applications %}
+<div class="card">
+    <p><strong>Student:</strong> {{ app.student.user.username }}</p>
+    <p><strong>Internship:</strong> {{ app.internship.title }}</p>
+
+    <!-- Offer Internship -->
+    <form method="post" action="{% url 'offer_application' app.id %}" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="decision" value="offer">
+        <button type="submit">Offer</button>
+    </form>
+
+    <!-- Reject Internship -->
+    <form method="post" action="{% url 'offer_application' app.id %}" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="decision" value="reject">
+        <button type="submit">Reject</button>
+    </form>
+</div>
+{% empty %}
+<p>No pending applications.</p>
+{% endfor %}
+

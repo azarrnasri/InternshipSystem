@@ -1,0 +1,38 @@
+{% load static %}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+		<title>Dashboard</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <!-- CSS -->
+        <link rel="stylesheet" href="{% static 'placement/assets/css/main.css' %}">
+</head>
+
+<body>
+    <h2>Notifications</h2>
+
+    {% for n in notifications %}
+    <div class="{% if not n.is_read %}unread{% endif %}">
+        <p>{{ n.message }}</p>
+        <small>{{ n.created_at }}</small>
+
+        {% if not n.is_read %}
+        <a href="{% url 'mark_notification_read' n.id %}">
+            Mark as read
+        </a>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p>No notifications.</p>
+    {% endfor %}
+
+    <a href="{% url 'notifications' %}">
+         Notifications ({{ unread_count }})
+    </a>
+
+
+</body>
+</html>
