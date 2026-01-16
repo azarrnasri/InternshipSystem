@@ -39,6 +39,7 @@ urlpatterns = [
 
     path('company/', views.company_dashboard, name='company_dashboard'),
     path('company/attendance/', views.interns_attendance, name='interns_attendance'),
+    path('company/attendance_summary/', views.attendance_summary, name='attendance_summary'),
     path('company/evaluation/', views.intern_evaluation_list, name='evaluation_list'),
     path('company/evaluation_form/<int:placement_id>', views.evaluate_intern, name='interns_evaluation'),
     path('company/applications/', views.supervisor_applications, name='supervisor_applications'),
