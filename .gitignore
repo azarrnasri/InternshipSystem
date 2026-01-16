@@ -37,3 +37,7 @@ internship_system/internship_system/__pycache__/urls.cpython-314.pyc
 db.sqlite3
 *.sqlite3
 *.sqlite3-journal
+
+# Uploaded documents / media
+internship_system/documents/documents/
+
