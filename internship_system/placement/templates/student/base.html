@@ -9,6 +9,9 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
         <!-- CSS -->
         <link rel="stylesheet" href="{% static 'placement/assets/css/main.css' %}">
+		<!-- Font Awesome Free -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 	</head>
 
 	<body class="is-preload">
@@ -20,7 +23,7 @@
 
 					<!-- Logo -->
 						<div id="logo">
-							<span class="image avatar48"><img src="images/avatar.jpg" alt="" /></span>
+							<div class="avatar"><i class="fa-solid fa-user-graduate"></i></div>
 							<h1 id="title">{{ request.user.username }}</h1>
 							<p>{{ request.user.role }}</p>
                             <a href="{% url 'logout' %}">Logout</a>
@@ -35,7 +38,7 @@
 								<li><a href="{% url 'student_offers' %}"id="contact-link"><span class="icon solid fa-check">My Application</span></a></li>
 								<li><a href="#"id="contact-link"><span class="icon solid fa-address-book">Logbook</span></a></li>
 								<li><a href="#" id="contact-link"><span class="icon solid fa-calendar">Attendance</span></a></li>
-								<li><a href="{% url 'notifications' %}"><span class="icon solid fa-bell">Notifications</span></li>
+								<!--<li><a href="{% url 'notifications' %}"><span class="icon solid fa-bell">Notifications</span></li> -->
 							</ul>
 						</nav>
 

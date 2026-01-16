@@ -2877,10 +2877,210 @@ form select {
   .document-table th {
     width: 40%;
   }
+
+  .filter-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-form input,
+  .filter-form select,
+  .filter-form button {
+    width: 100%;
+  }
 }
 
 .unread {
     background: #eef;
 }
 
+.avatar {
+  width: 80px;               /* size of avatar */
+  height: 80px;
+  background: rgba(255,255,255,0.5); /* glass effect */
+  backdrop-filter: blur(8px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem auto;  /* center & spacing */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.avatar i, .avatar svg {
+  font-size: 2.5rem;        /* adjust icon size */
+  color: #8ebebc;           /* icon color */
+}
+
+/* =========================
+   PAGE WRAPPER
+   ========================= */
+
+.filter-form,
+.internship-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2em;
+}
+
+/* =========================
+   HEADINGS
+   ========================= */
+
+h2 {
+    color: #444;
+    margin-bottom: 1.5em;
+	text-align: center;
+}
+
+h3 {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 0.8em;
+}
+
+/* =========================
+   FILTER FORM
+   ========================= */
+
+.filter-form {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2em;
+}
+
+.filter-form input,
+.filter-form select {
+    flex: 1 1 150px;
+    padding: 0.6em 1em;
+    border-radius: 0.35em;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(6px);
+}
+
+.filter-form button {
+    padding: 0.6em 1.2em;
+    border-radius: 0.35em;
+    background: #8ebebc;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.filter-form button:hover {
+    background: #7aaead;
+}
+
+/* =========================
+   INTERNSHIP CARD
+   ========================= */
+
+.card {
+    background: rgba(255, 255, 255, 0.5); /* glass effect */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 0.6em;
+    padding: 1.5em 2em;
+    margin-bottom: 1.8em;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+	width: 100%;
+}
+
+.card p {
+    margin: 0.4em 0;
+    color: #444;
+    font-size: 16px;
+}
+
+.card span {
+    display: inline-block;
+    padding: 0.4em 0.8em;
+    background: #e27689;
+    color: #fff;
+    border-radius: 0.35em;
+    font-size: 14px;
+}
+
+.card .btn {
+    margin-top: 0.8em;
+    display: inline-block;
+    padding: 0.5em 1.1em;
+    border-radius: 0.4em;
+    font-size: 16px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    background: #8ebebc;
+    color: #fff;
+    transition: background 0.2s ease;
+}
+
+.card .btn:hover {
+    background: #7aaead;
+}
+
+/* =========================
+   EMPTY STATE
+   ========================= */
+
+p.empty-text {
+    text-align: center;
+    font-style: italic;
+    color: #777;
+    margin-top: 2em;
+}
+
+/* =========================
+   MOBILE RESPONSIVE
+   ========================= */
+
+@media screen and (max-width: 768px) {
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-form input,
+    .filter-form select,
+    .filter-form button {
+        width: 100%;
+    }
+
+    .card {
+        padding: 1.2em 1.5em;
+    }
+}
+
+/* =========================
+   APPLY INTERNSHIP WRAPPER
+   ========================= */
+
+.apply-wrapper {
+    max-width: 700px;  /* same width as profile forms */
+    margin: 0 auto;
+    padding: 2em;
+}
+
+/* Center the heading */
+.apply-wrapper h2 {
+    text-align: center;
+    color: #444;
+    margin-bottom: 1.5em;
+}
+
+/* Success & Error messages reuse .alert style */
+.apply-wrapper .error {
+    border-left-color: #e27689;
+    color: #e27689;
+}
+
+.apply-wrapper .success {
+    border-left-color: #4caf7a;
+    color: #4caf7a;
+}
 

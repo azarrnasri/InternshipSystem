@@ -1,6 +1,8 @@
 {% extends "student/base.html" %}
 
 {% block content %}
+
+<div class="apply-wrapper">
 <h2>Apply Internship</h2>
 
 <p><strong>{{ internship.title }}</strong></p>
@@ -22,5 +24,6 @@
 {% if success %}
 <p style="color:green;">{{ success }}</p>
 {% endif %}
+</div>
 
 {% endblock %}
