@@ -1,38 +1,22 @@
-{% load static %}
+<h2>Internship Offers</h2>
 
-<!DOCTYPE html>
+{% if offers %}
+  {% for app in offers %}
+    <div class="card">
+      <h3>{{ app.internship.title }}</h3>
+      <p><strong>Company:</strong> {{ app.internship.company.company_name }}</p>
+      <p><strong>Supervisor:</strong> {{ app.handled_by.user.username }}</p>
 
-<html>
-<head>
-		<title>Dashboard</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-        <!-- CSS -->
-        <link rel="stylesheet" href="{% static 'placement/assets/css/main.css' %}">
-</head>
-
-<body>
-    <h2>Notifications</h2>
-
-    {% for n in notifications %}
-    <div class="{% if not n.is_read %}unread{% endif %}">
-        <p>{{ n.message }}</p>
-        <small>{{ n.created_at }}</small>
-
-        {% if not n.is_read %}
-        <a href="{% url 'mark_notification_read' n.id %}">
-            Mark as read
-        </a>
-        {% endif %}
-    </div>
-    {% empty %}
-    <p>No notifications.</p>
-    {% endfor %}
-
-    <a href="{% url 'notifications' %}">
-         Notifications ({{ unread_count }})
+    <a href="{% url 'accept_offer' app.id %}">
+        <button>Accept</button>
     </a>
 
+    <a href="{% url 'reject_offer' app.id %}">
+        <button>Reject</button>
+    </a>
+    </div>
+  {% endfor %}
+{% else %}
+  <p>No offers at the moment.</p>
+{% endif %}
 
-</body>
-</html>
