@@ -38,6 +38,8 @@ db.sqlite3
 *.sqlite3
 *.sqlite3-journal
 
+# Django local database
+internship_system/db.sqlite3
+
 # Uploaded documents / media
 internship_system/documents/documents/
-
