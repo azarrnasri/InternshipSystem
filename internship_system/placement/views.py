@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db import transaction
 from django.views.decorators.http import require_POST
-from django.db.models import Q, Prefetch
+from django.db.models import Q, Prefetch, Exists, OuterRef
 from django.utils import timezone
 from .decorators import role_required
 from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm
@@ -703,6 +703,8 @@ def delete_document(request, doc_id):
 @login_required
 @role_required(['student'])
 def internship_list(request):
+    student = request.user.student
+
     internships = Internship.objects.filter(status='Open')
 
     # Search
@@ -725,6 +727,15 @@ def internship_list(request):
     elif sort == 'oldest':
         internships = internships.order_by('created_at')
 
+    internships = internships.annotate(
+        has_applied=Exists(
+            InternshipApplication.objects.filter(
+                internship=OuterRef('pk'),
+                student=student
+            )
+        )
+    )
+
     # Unique locations for dropdown
     locations = Internship.objects.values_list('location', flat=True).distinct()
 
@@ -743,13 +754,13 @@ def apply_internship(request, id):
 
     #Block if student already placed
     if InternshipPlacement.objects.filter(student=student,status='Active').exists():
-        return render(request, 'student/apply_internship.html', {
+        return render(request, 'student/internship_apply.html', {
             'error': 'You have already been placed and cannot apply for new internships.'
             })
 
     #Block duplicate application
     if InternshipApplication.objects.filter(student=student, internship=internship).exists():
-        return render(request, 'student/apply_internship.html', {
+        return render(request, 'student/internship_apply.html', {
             'error': 'You have already applied for this internship.'
         })
 
@@ -768,7 +779,7 @@ def apply_internship(request, id):
             document.doc_type = 'Resume'
             document.save()
 
-            return render(request, 'student/apply_internship.html', {
+            return render(request, 'student/internship_apply.html', {
                 'success': 'Application submitted successfully!'
             })
 
@@ -776,7 +787,7 @@ def apply_internship(request, id):
         app_form = InternshipApplicationForm()
         doc_form = DocumentUploadForm()
 
-    return render(request, 'student/apply_internship.html', {
+    return render(request, 'student/internship_apply.html', {
         'app_form': app_form,
         'doc_form': doc_form,
         'internship': internship

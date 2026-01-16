@@ -42,15 +42,17 @@
         <p><strong>Duration:</strong> {{ internship.start_date }} - {{ internship.end_date }}</p>
         <p><strong>Slots:</strong> {{ internship.total_slots }}</p>
 
-        {% if internship.internshipapplication_set.filter(student=request.user.student).exists %}
-            <span>Already Applied</span>
-        {% else %}
-            <a href="{% url 'apply_internship' internship.id %}" class="btn">
-                Apply Now
-            </a>
-        {% endif %}
+    {% if internship.has_applied %}
+        <span>Already Applied</span>
+    {% else %}
+        <a href="{% url 'apply_internship' internship.id %}" class="btn">
+            Apply Now
+        </a>
+    {% endif %}
     </div>
-    <hr>
+    
+</hr>
+
 {% empty %}
     <p>No internships found.</p>
 {% endfor %}

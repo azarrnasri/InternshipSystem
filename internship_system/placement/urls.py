@@ -30,11 +30,14 @@ urlpatterns = [
     path('document/delete/<int:doc_id>/', views.delete_document, name='delete_document'),
     path('student/internships/', views.internship_list, name='internship_list'),
     path('student/internship/<int:id>/apply/', views.apply_internship, name='apply_internship'),
+
     path('company/', views.company_dashboard, name='company_dashboard'),
     path('company/attendance/', views.interns_attendance, name='interns_attendance'),
     path('company/evaluation/', views.intern_evaluation_list, name='evaluation_list'),
     path('company/evaluation_form/<int:placement_id>', views.evaluate_intern, name='interns_evaluation'),
+
     path('academic/', views.academic_dashboard, name='academic_dashboard'),
+
     path('manager/', views.admin, name='admin'),
     path('manager/users/', views.admin_user_list, name='admin_user_list'),
     path('manager/users/add/', views.admin_add_user, name='admin_add_user'),
@@ -47,10 +50,10 @@ urlpatterns = [
     path('manager/internships/', views.admin_internships_list, name='admin_internships_list'),
     path('manager/internships/add/', views.admin_add_internship, name='admin_add_internship'),
     path('manager/internships/edit/<int:internship_id>/', views.admin_edit_internship, name='admin_edit_internship'),
-
     path('manager/internships/delete/<int:internship_id>/', views.admin_delete_internship, name='admin_delete_internship'),
     # AJAX endpoint for departments
     path('manager/departments/by-company/<int:company_id>/', views.departments_by_company, name='departments_by_company'),
+    
     path('academic/dashboard/', views.academic_dashboard, name='academic_dashboard'),
     # Add this redirect
     path('academic/', lambda request: redirect('academic_dashboard')),
