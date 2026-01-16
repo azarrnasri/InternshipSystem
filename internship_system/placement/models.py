@@ -120,20 +120,36 @@ class InternshipApplication(models.Model):
         ('Pending', 'Pending'),
         ('Accepted', 'Accepted'),
         ('Rejected', 'Rejected'),
+        ('Offered', 'Offered'),
+    ]
+
+    STUDENT_DECISION = [
+        ('Pending', 'Pending'),
+        ('Accepted', 'Accepted'),
+        ('Rejected', 'Rejected'),
     ]
 
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     internship = models.ForeignKey(Internship, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    handled_by = models.ForeignKey(CompanySupervisor, on_delete=models.SET_NULL, null=True, blank=True)
+    student_decision = models.CharField(max_length=20, choices=STUDENT_DECISION, default='Pending')
     applied_date = models.DateField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(null=True, blank=True)
+    decision_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ('student', 'internship')
         
     def __str__(self):
         return f"{self.student} - {self.internship}"
+    
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
     
 # Internship Placement
 class InternshipPlacement(models.Model):

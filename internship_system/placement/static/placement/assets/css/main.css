@@ -2879,5 +2879,8 @@ form select {
   }
 }
 
+.unread {
+    background: #eef;
+}
 
 

@@ -10,7 +10,7 @@ from django.utils import timezone
 from .decorators import role_required
 from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm
 from django.utils.timezone import now
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from .models import (
     User,
     Student, 
@@ -24,7 +24,8 @@ from .models import (
     Internship,
     InternshipApplication,
     InternshipPlacement,
-    Department
+    Department,
+    Notification
 )
 
 def departments_by_company(request, company_id):
@@ -108,6 +109,7 @@ def company_dashboard(request):
     #2. Pending internship applications
     pending_applications = InternshipApplication.objects.filter(
         internship__company = company,
+        #internship__department=company_supervisor.department,
         status = 'Pending'
     ).count()
 
@@ -771,13 +773,22 @@ def apply_internship(request, id):
         if app_form.is_valid() and doc_form.is_valid():
             application = InternshipApplication.objects.create(
                 student=student,
-                internship=internship
+                internship=internship,
+                status='Pending'
             )
 
             document = doc_form.save(commit=False)
             document.student = student
             document.doc_type = 'Resume'
             document.save()
+
+            supervisors = CompanySupervisor.objects.filter(department=internship.department)
+
+            for supervisor in supervisors:
+                Notification.objects.create(
+                    user=supervisor.user,
+                    message=f"New application from {student.user.username}"
+                )
 
             return render(request, 'student/internship_apply.html', {
                 'success': 'Application submitted successfully!'
@@ -793,4 +804,193 @@ def apply_internship(request, id):
         'internship': internship
     })
 
+@login_required
+@role_required(['company'])
+def handle_application(request, app_id, action):
+    supervisor = CompanySupervisor.objects.get(user=request.user)
+    application = get_object_or_404(InternshipApplication, id=app_id)
+
+    # Already handled
+    if application.handled_by is not None:
+        return redirect('company_dashboard')
+
+    # Wrong department
+    if application.internship.department != supervisor.department:
+        return redirect('company_dashboard')
+
+    if action == 'accept':
+        application.status = 'Accepted'
+        application.handled_by = supervisor
+        application.save()
+
+        # Notify student
+        Notification.objects.create(
+            user=application.student.user,
+            message=f"You received an internship offer for {application.internship.title}"
+        )
+
+    elif action == 'reject':
+        application.status = 'Rejected'
+        application.handled_by = supervisor
+        application.save()
+
+        Notification.objects.create(
+            user=application.student.user,
+            message=f"Your application for {application.internship.title} was rejected"
+        )
+
+    return redirect('company_dashboard')
+
+@login_required
+@role_required(['company'])
+def supervisor_applications(request):
+    supervisor = request.user.companysupervisor
+
+    applications = InternshipApplication.objects.filter(
+        internship__department=supervisor.department,
+        status='Pending'
+    )
+
+    return render(request, 'company/applications.html', {
+        'applications': applications
+    })
+
+
+@login_required
+def supervisor_decide(request, application_id):
+    application = InternshipApplication.objects.get(id=application_id)
+
+    if application.status != 'Pending':
+        return HttpResponse("Already handled")
+
+    if request.method == 'POST':
+        decision = request.POST.get('decision')
+        if decision == 'offer':
+            # Assign the supervisor who clicked "Offer"
+            if not application.handled_by:
+                application.handled_by = request.user.companysupervisor
+            application.status = 'Offered'
+        elif decision == 'reject':
+            application.status = 'Rejected'
+        application.save()
+        return redirect('supervisor_applications')
+    
+    return redirect('supervisor_applications')
+
+
+@login_required
+def student_accept_offer(request, application_id):
+    application = InternshipApplication.objects.get(id=application_id)
+
+    if application.student != request.user.student:
+        return HttpResponseForbidden()
+
+    application.student_decision = 'Accepted'
+    application.status = 'Accepted'
+    application.save()
+
+    InternshipPlacement.objects.create(
+        internship=application.internship,
+        student=application.student,
+        company_supervisor=application.handled_by,
+        start_date=application.internship.start_date,
+        end_date=application.internship.end_date,
+        status='Active'
+    )
+
+@login_required
+def student_offers(request):
+    student = request.user.student
+
+    offers = InternshipApplication.objects.filter(
+        student=student,
+        status='Offered',
+        student_decision='Pending'
+    )
+
+    return render(request, 'student/offers.html', {
+        'offers': offers
+    })
+
+@login_required
+def accept_offer(request, pk):
+    application = get_object_or_404(InternshipApplication, pk=pk)
+
+    if application.student != request.user.student:
+        return redirect('student_offers')
+
+    # Accept
+    application.student_decision = 'Accepted'
+    application.status = 'Accepted'
+    application.save()
+
+    # Create placement
+    InternshipPlacement.objects.create(
+        internship=application.internship,
+        student=application.student,
+        company_supervisor=application.handled_by,
+        start_date=application.internship.start_date,
+        end_date=application.internship.end_date,
+        status='Active'
+    )
+
+    # Notify company supervisor
+    Notification.objects.create(
+        user=application.handled_by.user,
+        message=f"{application.student} accepted your internship offer."
+    )
+
+    
+    # Notify academic supervisor if exists
+    if application.student.academic_supervisor:
+        Notification.objects.create(
+            user=application.student.academic_supervisor.user,
+            message=f"{application.student.user.username} has accepted an internship "
+                    f"at {application.internship.company.company_name}."
+        )
+
+    return redirect('student_offers')
+
+@login_required
+def reject_offer(request, pk):
+    application = get_object_or_404(InternshipApplication, pk=pk)
+
+    if application.student != request.user.student:
+        return redirect('student_offers')
+
+    application.student_decision = 'Rejected'
+    application.status = 'Rejected'
+    application.save()
+
+    # Notify supervisor
+    Notification.objects.create(
+        user=application.handled_by.user,
+        message=f"{application.student.user.username} rejected your internship offer."
+    )
+
+    # Notify academic supervisor if exists
+    if application.student.academic_supervisor:
+        Notification.objects.create(
+            user=application.student.academic_supervisor.user,
+            message=f"{application.student.user.username} rejected an internship offer."
+        )
+
+    return redirect('student_offers')
+
+@login_required
+def notifications(request):
+    notes = Notification.objects.filter(user=request.user).order_by('-created_at')
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+
+    return render(request, 'notifications/list.html', {
+        'notifications': notes,
+        'unread_count': unread_count
+    })
+
+@login_required
+def mark_notification_read(request, pk):
+    note = get_object_or_404(Notification, pk=pk, user=request.user)
+    note.is_read = True
+    note.save()
+    return redirect('notifications')
 
