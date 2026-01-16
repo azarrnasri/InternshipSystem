@@ -1,62 +1,250 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Admin - User Form</title>
+
+    <style>
+        @import url("fontawesome-all.min.css");
+        @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,400,600");
+
+        :root {
+            --primary: #2563eb;
+            --bg: #f5f5f5;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --danger: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .page-wrapper {
+            padding: 40px;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            padding: 32px;
+        }
+
+        h1 {
+            margin: 0 0 28px;
+            font-size: 24px;
+            font-weight: 300;
+            color: #666;
+        }
+
+        fieldset {
+            border: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+
+        /* 🔥 Toggle section title */
+        legend {
+        font-size: 14px;
+        font-weight: 600;
+        color: #000;
+        margin: 0 0 10px;   /* reduce spacing */
+        padding: 0;
+    }
+
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        label {
+            font-weight: 300;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        input, select, textarea {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .field-error {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-back {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: span 1;
+            }
+        }
+
+
+    </style>
 </head>
+
 <body>
-    <h1>{{ form.instance.pk|yesno:"Edit User,Add User" }}</h1>
 
+<div class="page-wrapper">
+    <div class="card">
 
-    {% if user_form.errors %}
-    <pre>{{ user_form.errors }}</pre>
-    {% endif %}
+        <h1>{{ form.instance.pk|yesno:"Edit User,Add User" }}</h1>
 
-    {% if student_form.errors %}
-    <pre>{{ student_form.errors }}</pre>
-    {% endif %}
+        {% if user_form.errors %}
+            <div class="field-error">{{ user_form.errors }}</div>
+        {% endif %}
+        {% if student_form.errors %}
+            <div class="field-error">{{ student_form.errors }}</div>
+        {% endif %}
+        {% if academic_form.errors %}
+            <div class="field-error">{{ academic_form.errors }}</div>
+        {% endif %}
+        {% if company_form.errors %}
+            <div class="field-error">{{ company_form.errors }}</div>
+        {% endif %}
 
-    {% if academic_form.errors %}
-    <pre>{{ academic_form.errors }}</pre>
-    {% endif %}
+        <form method="post" novalidate action="">
+            {% csrf_token %}
 
-    {% if company_form.errors %}
-    <pre>{{ company_form.errors }}</pre>
-    {% endif %}
+            <fieldset>
+                <legend>User Info</legend>
+                <div class="form-grid">
+                    {% for field in user_form %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
 
+            <fieldset id="student-fields" style="display:none;">
+                <legend>Student Info</legend>
+                <div class="form-grid">
+                    {% for field in student_form %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
 
-    <form method="post" novalidate action="">
-  {% csrf_token %}
+            <fieldset id="academic-fields" style="display:none;">
+                <legend>Academic Supervisor Info</legend>
+                <div class="form-grid">
+                    {% for field in academic_form %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
 
-  <fieldset>
-    <legend>User Info</legend>
-    {{ user_form.as_p }}
-  </fieldset>
+            <fieldset id="company-fields" style="display:none;">
+                <legend>Company Supervisor Info</legend>
+                <div class="form-grid">
+                    {% for field in company_form %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
 
-  <fieldset id="student-fields" style="display:none;">
-    <legend>Student Info</legend>
-    {{ student_form.as_p }}
-  </fieldset>
+            <div class="actions">
+                <a href="{% url 'admin_user_list' %}" class="btn btn-back">← Back</a>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
 
-  <fieldset id="academic-fields" style="display:none;">
-    <legend>Academic Supervisor Info</legend>
-    {{ academic_form.as_p }}
-  </fieldset>
+    </div>
+</div>
 
-  <fieldset id="company-fields" style="display:none;">
-    <legend>Company Supervisor Info</legend>
-    {{ company_form.as_p }}
-  </fieldset>
-
-  <button type="submit">Save</button>
-</form>
-
-</body>
-
+<!-- Role toggle JS (unchanged) -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const roleSelect = document.getElementById('id_role');
-
-  if (!roleSelect) return;  // 🔥 prevents JS crash
+  if (!roleSelect) return;
 
   const sections = {
     student: document.getElementById('student-fields'),
@@ -78,6 +266,8 @@ document.addEventListener('DOMContentLoaded', function () {
   toggleFields();
 });
 </script>
+
+<!-- Company → Department JS (unchanged) -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const companySelect = document.getElementById('id_company');
@@ -87,7 +277,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     companySelect.addEventListener('change', function () {
         const companyId = this.value;
-
         departmentSelect.innerHTML = '<option value="">---------</option>';
 
         if (!companyId) return;
@@ -106,6 +295,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-
-
+</body>
 </html>
+
+
