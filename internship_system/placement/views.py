@@ -952,15 +952,23 @@ def student_accept_offer(request, application_id):
 def student_offers(request):
     student = request.user.student
 
-    offers = InternshipApplication.objects.filter(
-        student=student,
-        status='Offered',
-        student_decision='Pending'
-    )
+    applications = InternshipApplication.objects.filter(
+        student=student
+    ).select_related('internship', 'internship__company')
 
     return render(request, 'student/offers.html', {
-        'offers': offers
+        'applications': applications
     })
+
+   # offers = InternshipApplication.objects.filter(
+    #    student=student,
+    #    status='Offered',
+     #   student_decision='Pending'
+   # )
+
+   # return render(request, 'student/offers.html', {
+   #     'offers': offers
+   # })
 
 @login_required
 def accept_offer(request, pk):
