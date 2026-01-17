@@ -1,23 +1,40 @@
 {% extends "Company/base.html" %}
-
 {% load static %}
 
 {% block content %}
 
 <h2>Logbook Review</h2>
 
-{% for logbook in logbooks %}
-<div>
-    <p>
-        <strong>{{ logbook.student }}</strong> |
-        Week {{ logbook.week_no }}
-    </p>
-    <p>{{ logbook.content }}</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>Week</th>
+            <th>Content</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
 
-    <a href="{% url 'approve_logbook' logbook.id %}">Approve</a> |
-    <a href="{% url 'reject_logbook' logbook.id %}">Reject</a>
-</div>
-<hr>
-{% endfor %}
+    <tbody>
+    {% for logbook in logbooks %}
+        <tr>
+            <td>{{ logbook.student.user.username }}</td>
+            <td>Week {{ logbook.week_no }}</td>
+            <td>{{ logbook.content }}</td>
+            <td>{{ logbook.status }}</td>
+
+            <td>
+                {% if logbook.status == 'Pending' %}
+                    <a href="{% url 'approve_logbook' logbook.id %}" class="btn btn-success btn-sm">Approve</a>
+                    <a href="{% url 'reject_logbook' logbook.id %}" class="btn btn-danger btn-sm">Reject</a>
+                {% else %}
+                    <span>-</span>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
 
 {% endblock %}
