@@ -1,0 +1,45 @@
+{% extends "student/base.html" %}
+{% block content %}
+
+<h2>Weekly Logbook</h2>
+
+{% if error %}
+<p style="color:red;">{{ error }}</p>
+{% else %}
+<table border="1">
+<tr>
+    <th>Week</th>
+    <th>Status</th>
+    <th>Action</th>
+</tr>
+
+{% for week in weeks %}
+<tr>
+    <td>Week {{ week }}</td>
+
+    <td>
+        {% if week in submitted_weeks %}
+        {{ submitted_weeks[week].status }}
+        {% else %}
+        Not Submitted
+        {% endif %}
+    </td>
+    
+    <td>
+        {% if week in submitted_weeks %}
+        {% if submitted_weeks[week].status == 'Pending' %}
+        <a href="{% url 'edit_logbook' submitted_weeks[week].id %}">Edit</a>
+        {% else %}
+        Locked
+        {% endif %}
+        {% else %}
+        <a href="{% url 'submit_logbook' week %}">Submit</a>
+        {% endif %}
+    </td>
+
+</tr>
+{% endfor %}
+</table>
+{% endif %}
+
+{% endblock %}

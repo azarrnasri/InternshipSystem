@@ -927,27 +927,6 @@ def supervisor_decide(request, application_id):
     
     return redirect('supervisor_applications')
 
-
-@login_required
-def student_accept_offer(request, application_id):
-    application = InternshipApplication.objects.get(id=application_id)
-
-    if application.student != request.user.student:
-        return HttpResponseForbidden()
-
-    application.student_decision = 'Accepted'
-    application.status = 'Accepted'
-    application.save()
-
-    InternshipPlacement.objects.create(
-        internship=application.internship,
-        student=application.student,
-        company_supervisor=application.handled_by,
-        start_date=application.internship.start_date,
-        end_date=application.internship.end_date,
-        status='Active'
-    )
-
 @login_required
 def student_offers(request):
     student = request.user.student
@@ -959,16 +938,6 @@ def student_offers(request):
     return render(request, 'student/offers.html', {
         'applications': applications
     })
-
-   # offers = InternshipApplication.objects.filter(
-    #    student=student,
-    #    status='Offered',
-     #   student_decision='Pending'
-   # )
-
-   # return render(request, 'student/offers.html', {
-   #     'offers': offers
-   # })
 
 @login_required
 def accept_offer(request, pk):
@@ -1051,4 +1020,190 @@ def mark_notification_read(request, pk):
     note.is_read = True
     note.save()
     return redirect('notifications')
+
+#Weekly Logbook
+@login_required
+@role_required(['student'])
+def logbook_list(request):
+    student = get_object_or_404(Student, user=request.user)
+
+    placement = InternshipPlacement.objects.filter(
+        student=student,
+        status='Active'
+    ).first()
+
+    if not placement:
+        return render(request, 'student/logbook_list.html', {
+            'error': 'You are not placed yet.'
+        })
+
+    application = InternshipApplication.objects.filter(
+        student=student,
+        internship=placement.internship,
+        status='Accepted'
+    ).first()
+
+    logbooks = Logbook.objects.filter(student=student)
+
+    submitted_weeks = {lb.week_no: lb for lb in logbooks}
+    weeks = range(1, 13)  # 12-week internship
+
+    return render(request, 'student/logbook_list.html', {
+        'weeks': weeks,
+        'submitted_weeks': submitted_weeks
+    })
+
+@login_required
+@role_required(['student'])
+def submit_logbook(request, week_no):
+    student = get_object_or_404(Student, user=request.user)
+
+    placement = InternshipPlacement.objects.filter(
+        student=student,
+        status='Active'
+    ).first()
+
+    if not placement:
+        messages.error(request, "You are not placed.")
+        return redirect('logbook_list')
+
+    application = InternshipApplication.objects.get(
+        student=student,
+        internship=placement.internship,
+        status='Accepted'
+    )
+
+    if Logbook.objects.filter(student=student, week_no=week_no).exists():
+        messages.error(request, "Logbook already submitted.")
+        return redirect('logbook_list')
+
+    if request.method == 'POST':
+        content = request.POST.get('content')
+
+        Logbook.objects.create(
+            student=student,
+            application=application,
+            week_no=week_no,
+            content=content,
+            submitted_date=date.today()
+        )
+
+        messages.success(request, "Logbook submitted successfully.")
+        return redirect('logbook_list')
+
+    return render(request, 'student/submit_logbook.html', {
+        'week_no': week_no
+    })
+
+@login_required
+@role_required(['student'])
+def edit_logbook(request, id):
+    student = get_object_or_404(Student, user=request.user)
+    logbook = get_object_or_404(Logbook, id=id, student=student)
+
+    if logbook.status != 'Pending':
+        return render(request, 'student/logbook_edit.html', {
+            'error': 'This logbook can no longer be edited.'
+        })
+
+    if request.method == 'POST':
+        logbook.content = request.POST.get('content')
+        logbook.updated_at = date.today()
+        logbook.save()
+
+        messages.success(request, "Logbook updated.")
+        return redirect('logbook_list')
+
+    return render(request, 'student/logbook_edit.html', {
+        'logbook': logbook
+    })
+
+#Deadline logbook
+@login_required
+@role_required(['student'])
+def submit_logbook(request, week):
+    student = Student.objects.get(user=request.user)
+
+    start_date = student.internshipplacement.start_date
+    deadline = start_date + timedelta(days=(week * 7))
+
+    if date.today() > deadline:
+        return render(request, 'student/logbook_submit.html', {
+            'error': 'Submission deadline has passed.'
+        })
+
+    if request.method == 'POST':
+        Logbook.objects.create(
+            student=student,
+            application=InternshipApplication.objects.get(student=student),
+            week_no=week,
+            content=request.POST.get('content'),
+            submitted_date=date.today()
+        )
+        messages.success(request, "Logbook submitted.")
+        return redirect('logbook_list')
+
+    return render(request, 'student/logbook_submit.html', {'week': week})
+
+
+#Company Supervisor View Logbook
+@login_required
+@role_required(['company'])
+def company_logbook_review(request):
+    supervisor = get_object_or_404(CompanySupervisor, user=request.user)
+
+    placements = InternshipPlacement.objects.filter(
+        company_supervisor=supervisor,
+        status='Active'
+    )
+
+    logbooks = Logbook.objects.filter(
+        application__internship__in=[p.internship for p in placements]
+    )
+
+    return render(request, 'company/logbook_review.html', {
+        'logbooks': logbooks
+    })
+
+#Approve/Reject Logbook
+@login_required
+@role_required(['company'])
+def approve_logbook(request, id):
+    logbook = get_object_or_404(Logbook, id=id)
+    logbook.company_approval = True
+    logbook.approved_at = date.today()
+    logbook.save()
+    messages.success(request, "Logbook approved.")
+    return redirect('company_logbook_review')
+
+
+@login_required
+@role_required(['company'])
+def reject_logbook(request, id):
+    logbook = get_object_or_404(Logbook, id=id)
+    logbook.company_approval = False
+    logbook.status = 'Rejected'
+    logbook.save()
+    messages.warning(request, "Logbook rejected.")
+    return redirect('company_logbook_review')
+
+#Academic Supervisor view approved logbook
+@login_required
+@role_required(['academic'])
+def academic_logbook_review(request):
+    supervisor = get_object_or_404(AcademicSupervisor, user=request.user)
+
+    logbooks = Logbook.objects.filter(
+        student__academic_supervisor=supervisor,
+        company_approval=True
+    )
+
+    return render(request, 'academic/logbook_review.html', {
+        'logbooks': logbooks
+    })
+
+
+
+
+
 

@@ -1,0 +1,16 @@
+{% extends "student/base.html" %}
+{% block content %}
+
+<h2>Edit Logbook - Week {{ logbook.week_no }}</h2>
+
+{% if error %}
+<p style="color:red;">{{ error }}</p>
+{% else %}
+<form method="post">
+    {% csrf_token %}
+    <textarea name="content" rows="10" cols="60">{{ logbook.content }}</textarea><br><br>
+    <button type="submit">Update</button>
+</form>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "Company/base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<h2>Logbook Review</h2>
+
+{% for logbook in logbooks %}
+<div>
+    <p>
+        <strong>{{ logbook.student }}</strong> |
+        Week {{ logbook.week_no }}
+    </p>
+    <p>{{ logbook.content }}</p>
+
+    <a href="{% url 'approve_logbook' logbook.id %}">Approve</a> |
+    <a href="{% url 'reject_logbook' logbook.id %}">Reject</a>
+</div>
+<hr>
+{% endfor %}
+
+{% endblock %}
