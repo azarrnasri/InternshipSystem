@@ -13,32 +13,32 @@
     <th>Action</th>
 </tr>
 
-{% for week in weeks %}
+{% for item in weeks_data %}
 <tr>
-    <td>Week {{ week }}</td>
+    <td>Week {{ item.week }}</td>
 
     <td>
-        {% if week in submitted_weeks %}
-        {{ submitted_weeks[week].status }}
+        {% if item.logbook %}
+            {{ item.logbook.status }}
         {% else %}
-        Not Submitted
-        {% endif %}
-    </td>
-    
-    <td>
-        {% if week in submitted_weeks %}
-        {% if submitted_weeks[week].status == 'Pending' %}
-        <a href="{% url 'edit_logbook' submitted_weeks[week].id %}">Edit</a>
-        {% else %}
-        Locked
-        {% endif %}
-        {% else %}
-        <a href="{% url 'submit_logbook' week %}">Submit</a>
+            Not Submitted
         {% endif %}
     </td>
 
+    <td>
+        {% if item.logbook %}
+            {% if item.logbook.status == 'Pending' %}
+                <a href="{% url 'edit_logbook' item.logbook.id %}">Edit</a>
+            {% else %}
+                Submitted
+            {% endif %}
+        {% else %}
+            <a href="{% url 'submit_logbook' item.week %}">Submit</a>
+        {% endif %}
+    </td>
 </tr>
 {% endfor %}
+
 </table>
 {% endif %}
 

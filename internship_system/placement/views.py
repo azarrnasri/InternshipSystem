@@ -10,7 +10,8 @@ from django.utils import timezone
 from .decorators import role_required
 from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm
 from django.utils.timezone import now
-from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponse
+from datetime import timedelta, date
 from .models import (
     User,
     Student, 
@@ -1046,11 +1047,16 @@ def logbook_list(request):
     logbooks = Logbook.objects.filter(student=student)
 
     submitted_weeks = {lb.week_no: lb for lb in logbooks}
-    weeks = range(1, 13)  # 12-week internship
+    
+    weeks_data = []
+    for week in range(1, 13):
+        weeks_data.append({
+            'week': week,
+            'logbook': submitted_weeks.get(week)
+        })
 
     return render(request, 'student/logbook_list.html', {
-        'weeks': weeks,
-        'submitted_weeks': submitted_weeks
+        'weeks_data': weeks_data
     })
 
 @login_required
@@ -1067,25 +1073,39 @@ def submit_logbook(request, week_no):
         messages.error(request, "You are not placed.")
         return redirect('logbook_list')
 
-    application = InternshipApplication.objects.get(
+    application = InternshipApplication.objects.filter(
         student=student,
         internship=placement.internship,
         status='Accepted'
-    )
+    ).first()
 
+    if not application:
+        messages.error(request, "No accepted application found.")
+        return redirect('logbook_list')
+
+    # 🔒 Deadline check
+    start_date = placement.start_date
+    deadline = start_date + timedelta(days=week_no * 7)
+
+    if date.today() > deadline:
+        return render(request, 'student/submit_logbook.html', {
+            'error': 'Submission deadline has passed.',
+            'week_no': week_no
+        })
+
+    # Prevent duplicate submission
     if Logbook.objects.filter(student=student, week_no=week_no).exists():
         messages.error(request, "Logbook already submitted.")
         return redirect('logbook_list')
 
     if request.method == 'POST':
-        content = request.POST.get('content')
-
         Logbook.objects.create(
             student=student,
             application=application,
             week_no=week_no,
-            content=content,
-            submitted_date=date.today()
+            content=request.POST.get('content'),
+            submitted_date=date.today(),
+            status='Pending'
         )
 
         messages.success(request, "Logbook submitted successfully.")
@@ -1094,6 +1114,7 @@ def submit_logbook(request, week_no):
     return render(request, 'student/submit_logbook.html', {
         'week_no': week_no
     })
+
 
 @login_required
 @role_required(['student'])
@@ -1117,34 +1138,6 @@ def edit_logbook(request, id):
     return render(request, 'student/logbook_edit.html', {
         'logbook': logbook
     })
-
-#Deadline logbook
-@login_required
-@role_required(['student'])
-def submit_logbook(request, week):
-    student = Student.objects.get(user=request.user)
-
-    start_date = student.internshipplacement.start_date
-    deadline = start_date + timedelta(days=(week * 7))
-
-    if date.today() > deadline:
-        return render(request, 'student/logbook_submit.html', {
-            'error': 'Submission deadline has passed.'
-        })
-
-    if request.method == 'POST':
-        Logbook.objects.create(
-            student=student,
-            application=InternshipApplication.objects.get(student=student),
-            week_no=week,
-            content=request.POST.get('content'),
-            submitted_date=date.today()
-        )
-        messages.success(request, "Logbook submitted.")
-        return redirect('logbook_list')
-
-    return render(request, 'student/logbook_submit.html', {'week': week})
-
 
 #Company Supervisor View Logbook
 @login_required
@@ -1171,8 +1164,10 @@ def company_logbook_review(request):
 def approve_logbook(request, id):
     logbook = get_object_or_404(Logbook, id=id)
     logbook.company_approval = True
+    logbook.status = 'Approved'
     logbook.approved_at = date.today()
     logbook.save()
+
     messages.success(request, "Logbook approved.")
     return redirect('company_logbook_review')
 
@@ -1184,6 +1179,7 @@ def reject_logbook(request, id):
     logbook.company_approval = False
     logbook.status = 'Rejected'
     logbook.save()
+
     messages.warning(request, "Logbook rejected.")
     return redirect('company_logbook_review')
 
@@ -1193,10 +1189,7 @@ def reject_logbook(request, id):
 def academic_logbook_review(request):
     supervisor = get_object_or_404(AcademicSupervisor, user=request.user)
 
-    logbooks = Logbook.objects.filter(
-        student__academic_supervisor=supervisor,
-        company_approval=True
-    )
+    logbooks = Logbook.objects.filter(student__academic_supervisor=supervisor).order_by('student__user__username', 'week_no')
 
     return render(request, 'academic/logbook_review.html', {
         'logbooks': logbooks

@@ -1,55 +1,43 @@
 {% extends "academic_dashboard.html" %}
-{% block content %}
 
+{% block content %}
 <h2>Logbook Review</h2>
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Student</th>
-        <td>{{ logbook.student.user.username }}</td>
-    </tr>
-    <tr>
-        <th>Week</th>
-        <td>{{ logbook.week_no }}</td>
-    </tr>
-    <tr>
-        <th>Submitted Date</th>
-        <td>{{ logbook.submitted_date }}</td>
-    </tr>
-    <tr>
-        <th>Status</th>
-        <td><strong>{{ logbook.status }}</strong></td>
-    </tr>
-</table>
+{% if logbooks %}
+    {% for logbook in logbooks %}
+        <h3>{{ logbook.student.user.get_full_name }} — Week {{ logbook.week_no }}</h3>
 
-<hr>
+        <table border="1" cellpadding="8">
+            <tr>
+                <th>Student</th><td>{{ logbook.student.user.username }}</td>
+            </tr>
+            <tr>
+                <th>Week</th><td>{{ logbook.week_no }}</td>
+            </tr>
+            <tr>
+                <th>Submitted Date</th><td>{{ logbook.submitted_date }}</td>
+            </tr>
+            <tr>
+                <th>Status</th><td><strong>{{ logbook.status }}</strong></td>
+            </tr>
+        </table>
 
-<h3>Logbook Content</h3>
-<p style="white-space: pre-wrap;">{{ logbook.content }}</p>
+        <h4>Logbook Content</h4>
+        <p style="white-space: pre-wrap;">{{ logbook.content }}</p>
 
-<hr>
+        <h4>Company Approval</h4>
+        {% if logbook.company_approval == True %}
+            <p style="color:green;">Approved by Company Supervisor</p>
+        {% elif logbook.company_approval == False %}
+            <p style="color:red;">Rejected by Company Supervisor</p>
+        {% else %}
+            <p>Pending Company Approval</p>
+        {% endif %}
 
-<h3>Company Approval</h3>
-{% if logbook.company_approval %}
-    <p style="color:green;">✔ Approved by Company Supervisor</p>
-{% elif logbook.company_approval == False %}
-    <p style="color:red;">✖ Rejected by Company Supervisor</p>
+        <hr>
+    {% endfor %}
 {% else %}
-    <p>⏳ Pending Company Approval</p>
-{% endif %}
-
-<hr>
-
-<h3>Academic Supervisor Review</h3>
-
-{% if logbook.status == 'Final Approved' %}
-    <!-- READ-ONLY VIEW -->
-    <p><strong>Academic Notes:</strong></p>
-    <p>{{ logbook.academic_supervisor_notes }}</p>
-
-    <p style="color:green;">
-        ✔ Final Approved on {{ logbook.approved_at }}
-    </p>
+    <p>No logbooks available yet for your students.</p>
 {% endif %}
 
 {% endblock %}
