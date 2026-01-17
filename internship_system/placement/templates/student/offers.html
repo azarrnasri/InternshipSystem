@@ -1,21 +1,49 @@
-<h2>Internship Offers</h2>
+{% extends "student/base.html" %}
+{% load static %}
 
-{% if offers %}
-  {% for app in offers %}
-    <div class="card">
-      <h3>{{ app.internship.title }}</h3>
-      <p><strong>Company:</strong> {{ app.internship.company.company_name }}</p>
-      <p><strong>Supervisor:</strong> {{ app.handled_by.user.username }}</p>
+{% block content %}
 
-    <a href="{% url 'accept_offer' app.id %}">
-        <button>Accept</button>
-    </a>
+<h2>Application Status</h2>
 
-    <a href="{% url 'reject_offer' app.id %}">
-        <button>Reject</button>
-    </a>
-    </div>
-  {% endfor %}
-{% else %}
-  <p>No offers at the moment.</p>
-{% endif %}
+<table class="application-table">
+    <thead>
+        <tr>
+            <th>Internship</th>
+            <th>Company</th>
+            <th>Status</th>
+            <th>Your Decision</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+
+<tbody>
+
+{% for app in applications %}
+<tr>
+    <td>{{ app.internship.title }}</td>
+    <td>{{ app.internship.company.company_name }}</td>
+
+    <td class="status-{{ app.status|lower }}">{{ app.status }}</td>
+    <td class="status-{{ app.student_decision|lower }}">{{ app.student_decision }}</td>
+
+    <td>
+        {% if app.status == "Offered" and app.student_decision == "Pending" %}
+          <form method="post" action="{% url 'accept_offer' app.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">Accept</button>
+          </form>
+
+          <form method="post" action="{% url 'reject_offer' app.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">Reject</button>
+          </form>
+        {% else %}
+            —
+        {% endif %}
+
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+
+{% endblock %}
