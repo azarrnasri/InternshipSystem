@@ -39,6 +39,7 @@ urlpatterns = [
     path('student/logbook/', views.logbook_list, name='logbook_list'),
     path('student/logbook/submit/<int:week_no>/', views.submit_logbook, name='submit_logbook'),
     path('student/logbook/edit/<int:id>/', views.edit_logbook, name='edit_logbook'),
+    path('student/attendance/', views.student_attendance_summary, name='student_attendance_summary'),
 
     path('company/', views.company_dashboard, name='company_dashboard'),
     path('company/attendance/', views.interns_attendance, name='interns_attendance'),

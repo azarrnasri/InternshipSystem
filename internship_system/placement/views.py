@@ -5,13 +5,13 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db import transaction
 from django.views.decorators.http import require_POST
-from django.db.models import Q, Prefetch, Exists, OuterRef
+from django.db.models import Q, Prefetch, Exists, OuterRef, Count
 from django.utils import timezone
 from .decorators import role_required
 from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm
 from django.utils.timezone import now
 from django.http import JsonResponse, HttpResponse
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 from .models import (
     User,
     Student, 
@@ -1194,6 +1194,68 @@ def academic_logbook_review(request):
     return render(request, 'academic/logbook_review.html', {
         'logbooks': logbooks
     })
+
+@login_required
+@role_required(['student'])
+def student_attendance_summary(request):
+    student = get_object_or_404(Student, user=request.user)
+
+    placement = InternshipPlacement.objects.filter(
+        student=student,
+        status='Active'
+    ).first()
+
+    if not placement:
+        return render(request, 'student/attendance.html', {
+            'profile_missing': True,
+            'attendances': [],
+        })
+
+    month = int(request.GET.get('month', datetime.today().month))
+    year = int(request.GET.get('year', datetime.today().year))
+
+    start_date = datetime(year, month, 1).date()
+    # Calculate last day of month
+    if month == 12:
+        end_date = datetime(year + 1, 1, 1).date() - timedelta(days=1)
+    else:
+        end_date = datetime(year, month + 1, 1).date() - timedelta(days=1)
+    
+    today = date.today()
+    last_day_to_check = min(end_date, today)
+
+    # Fetch attendance in the month
+    attendances = Attendance.objects.filter(
+        placement=placement,
+        date__range=[start_date, last_day_to_check]
+    ).order_by('date')
+
+    attended_dates = set(att.date for att in attendances if att.check_in)
+
+    # Generate all dates up to today in the month
+    all_dates_up_to_today = [start_date + timedelta(days=i) 
+                             for i in range((last_day_to_check - start_date).days + 1)]
+
+    # Count absent days
+    total_days_present = len(attended_dates)
+    total_days_absent = len([d for d in all_dates_up_to_today if d not in attended_dates])
+
+    context = {
+        'placement': placement,
+        'attendances': attendances,
+        'profile_missing': False,
+        "months": range(1, 13),
+        'month': month,
+        'year': year,
+        'total_days_present': total_days_present,
+        'total_days_absent': total_days_absent,
+        'start_date': start_date,
+        'end_date': end_date,
+        'today': today,
+    }
+
+    return render(request, 'student/attendance.html', context)
+
 
 
 
