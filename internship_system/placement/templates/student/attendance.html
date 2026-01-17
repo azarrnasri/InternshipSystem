@@ -1,0 +1,54 @@
+{% extends "student/base.html" %}
+
+{% block content %}
+<h2>Attendance Summary — {{ start_date|date:"F Y" }}</h2>
+
+{% if profile_missing %}
+    <p>You currently have no active internship placement.</p>
+{% else %}
+
+<!-- Month/Year selector form -->
+<form method="get" style="margin-bottom: 20px;">
+    <label>Month:
+        <select name="month">
+            {% for m in months %}
+                <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Year:
+        <input type="number" name="year" value="{{ year }}" min="2000" max="2100">
+    </label>
+    <button type="submit">View</button>
+</form>
+
+<h3>Monthly Summary</h3>
+<ul>
+    <li>Total Days Present: {{ total_days_present }}</li>
+    <li>Total Days Absent: {{ total_days_absent }}</li>
+</ul>
+
+<hr>
+
+<h3>Daily Attendance</h3>
+{% if attendances %}
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Date</th>
+        <th>Check-in</th>
+        <th>Check-out</th>
+    </tr>
+    {% for att in attendances %}
+    <tr>
+        <td>{{ att.date }}</td>
+        <td>{{ att.check_in|default:"-" }}</td>
+        <td>{{ att.check_out|default:"-" }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No attendance records for this month yet.</p>
+{% endif %}
+
+{% endif %}
+{% endblock %}
