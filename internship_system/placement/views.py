@@ -108,8 +108,8 @@ def company_dashboard(request):
 
     #2. Pending internship applications
     pending_applications = InternshipApplication.objects.filter(
-        internship__company = company,
-        #internship__department=company_supervisor.department,
+        #internship__company = company,
+        internship__department=company_supervisor.department,
         status = 'Pending'
     ).count()
 
@@ -160,7 +160,6 @@ def company_dashboard(request):
 def interns_attendance(request):
     today = now().date()
 
-    # Get company supervisor profile
     try:
         company_supervisor = CompanySupervisor.objects.get(user=request.user)
     except CompanySupervisor.DoesNotExist:
@@ -169,6 +168,11 @@ def interns_attendance(request):
             'placements': [],
             'today': today,
         })
+    
+    interns = Student.objects.filter(
+        internshipplacement__company_supervisor = company_supervisor,
+        internshipplacement__status = 'Active'
+    ).distinct()
 
     # Active interns 
     placements = InternshipPlacement.objects.filter(
@@ -197,8 +201,8 @@ def interns_attendance(request):
         )
 
         attendance, created = Attendance.objects.get_or_create(
-            placement=placement,
-            date=today,
+            placement = placement,
+            date = today,
             defaults={'check_in': now().time()}
         )
 
@@ -211,10 +215,50 @@ def interns_attendance(request):
     context = {
         'placements': placements,
         'today': today,
+        "interns": interns,
         'profile_missing': False,
     }
 
     return render(request, 'company/attendance.html', context)
+
+@login_required
+@role_required(allowed_roles=['company'])
+def attendance_summary(request):
+    date = request.GET.get('date', now().date())
+
+    try:
+        company_supervisor = CompanySupervisor.objects.get(user=request.user)
+    except CompanySupervisor.DoesNotExist:
+        return render(request, 'company/attendance_summary.html', {
+            'profile_missing': True,
+            'placements': [],
+            'selected_date': date,
+        })
+    
+    interns = Student.objects.filter(
+        internshipplacement__company_supervisor = company_supervisor,
+        internshipplacement__status = 'Active'
+    ).distinct()
+
+    placements = InternshipPlacement.objects.filter(
+        company_supervisor=company_supervisor,
+        status='Active'
+    ).select_related('student__user').prefetch_related(
+        Prefetch(
+            'attendance_set',
+            queryset=Attendance.objects.filter(date=date),
+            to_attr='attendance_for_date'
+        )
+    )
+
+    context = {
+        'placements': placements,
+        'selected_date': date,
+        "interns": interns,
+        'profile_missing': False,
+    }
+
+    return render(request, 'company/attendance_summary.html',context)
 
 @login_required
 @role_required(allowed_roles=['company'])
@@ -226,6 +270,11 @@ def intern_evaluation_list(request):
             'placements': [],
             'profile_missing': True
         })
+    
+    interns = Student.objects.filter(
+        internshipplacement__company_supervisor = company,
+        internshipplacement__status = 'Active'
+    ).distinct()
 
     placements = InternshipPlacement.objects.filter(
         company_supervisor = company
@@ -243,6 +292,7 @@ def intern_evaluation_list(request):
     context = {
         'placements': placements,
         'evaluation_map': evaluation_map,
+        'interns': interns,
         'profile_missing': False
     }
 

@@ -9,6 +9,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
         <!-- CSS -->
         <link rel="stylesheet" href="{% static 'placement/assets/css/main.css' %}">
+		<link rel="stylesheet" href="{% static 'placement/assets/css/nav-dropdown.css' %}">
 	</head>
 	<body class="is-preload">
 		<!-- Header -->
@@ -28,10 +29,36 @@
 						<nav id="nav">
 							<ul>
 								<li><a href="{% url 'company_dashboard' %}" id="dashboard-link"><span class="icon solid fa-home">Dashboard</span></a></li>
-								<li><a href="#portfolio" id="portfolio-link"><span class="icon solid fa-user">Interns</span></a></li>
+								<li class="nav-interns">
+									<a id="internToggle"><span class="icon solid fa-users">Interns</span></a>
+									<ul id="dropdown-menu">
+										{% for intern in interns %}
+                							<li>{{ intern.user.username }}</li>
+										{% empty %}
+											<li class="empty">No interns assigned</li>
+										{% endfor %}
+									</ul>
+								</li>
 								<li><a href="{% url 'supervisor_applications' %}" id="about-link"><span class="icon solid fa-user">Internship Application</span></a></li>
 								<li><a href="#contact" id="contact-link"><span class="icon solid fa-address-book">Logbooks</span></a></li>
-                                <li><a href="{% url 'interns_attendance' %}" id="contact-link"><span class="icon solid fa-calendar">Attendance</span></a></li>
+                                <li class="nav-attendance">
+									<a id="attendanceToggle">
+										<span class="icon solid fa-calendar"></span>
+										Attendance
+									</a>
+									<ul id="attendance-menu">
+										<li>
+											<a href="{% url 'interns_attendance' %}">
+												Attendance
+											</a>
+										</li>
+										<li>
+											<a href="{% url 'attendance_summary' %}">
+												Attendance Summary
+											</a>
+										</li>
+									</ul>
+								</li>
                                 <li><a href="{% url 'evaluation_list' %}" id="contact-link"><span class="icon solid fa-check">Evaluation</span></a></li>
                                 <li><a href="{% url 'notifications' %}" id="contact-link"><span class="icon solid fa-bell">Notifications</span></a></li>
 							</ul>
@@ -55,6 +82,39 @@
             <script src="{% static 'placement/assets/js/breakpoints.min.js' %}"></script>
             <script src="{% static 'placement/assets/js/util.js' %}"></script>
             <script src="{% static 'placement/assets/js/main.js' %}"></script>
+			<script>
+			document.addEventListener("DOMContentLoaded", function () {
+
+				function setupDropdown(toggleId, menuId) {
+					const toggle = document.getElementById(toggleId);
+					const menu = document.getElementById(menuId);
+
+					if (!toggle || !menu) return;
+
+					toggle.addEventListener("click", function (e) {
+						e.preventDefault();
+						e.stopPropagation();
+
+						// Close other dropdowns
+						document.querySelectorAll(".dropdown-menu").forEach(m => {
+							if (m !== menu) m.classList.remove("show");
+						});
+
+						menu.classList.toggle("show");
+					});
+				}
+
+				setupDropdown("internToggle", "dropdown-menu");
+				setupDropdown("attendanceToggle", "attendance-menu");
+
+				// Close all dropdowns when clicking outside
+				document.addEventListener("click", function () {
+					document.querySelectorAll(".dropdown-menu").forEach(menu => {
+						menu.classList.remove("show");
+					});
+				});
+			});
+			</script>
 
 	</body>
 </html>

@@ -1,0 +1,95 @@
+.nav-interns, .nav-attendance {
+    position: relative;
+    background-color: #222629;
+}
+
+/* Intern dropdown*/
+#nav ul li ul#dropdown-menu {
+    display: none;
+    position: relative;
+    background: #1a1d20; 
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: 250px;      
+    overflow-y: auto;       
+    overflow-x: hidden;     
+}
+
+/* Show when toggled */
+#nav ul li ul#dropdown-menu.show {
+    display: block;
+}
+
+#dropdown-menu {
+    transition: all 0.2s ease;
+    border-bottom: 0.5px solid #8ebebc;
+}
+
+/* Dropdown items */
+#dropdown-menu li {
+    padding: 0; 
+    background-color: transparent;
+}
+
+#dropdown-menu li a, #dropdown-menu .empty {
+    text-decoration: none;
+    display: block;
+    color: #a0a0a0;     
+    padding: 10px 16px 10px 40px; 
+    font-size: 0.85em;
+    transition: background 0.3s;
+}
+
+#dropdown-menu li a:hover {
+    background: #f5f5f5;
+    color: #8ebebc;
+}
+
+#dropdown-menu .empty {
+    font-style: italic;
+    cursor: default;
+}
+
+/* Attendance dropdown */
+#attendance-menu {
+    transition: all 0.2s ease;
+}
+
+#nav ul li ul#attendance-menu {
+    display: none;
+    position: relative;
+    background: #1a1d20; 
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: 250px;      
+    overflow-y: auto;       
+    overflow-x: hidden; 
+}
+
+#nav ul li ul#attendance-menu.show {
+    display: block;
+}
+
+#attendance-menu li {
+    font-style: italic;
+    cursor: default;
+    padding: 0;
+    font-size: 0.85em;
+    border-bottom: 0.5px solid #8ebebc;
+}
+
+/* Show when toggled */
+#dropdown-menu.show {
+    display: block;
+}
+
+#dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+#dropdown-menu::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
