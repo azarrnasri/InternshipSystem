@@ -178,10 +178,18 @@ class Attendance(models.Model):
 
 # Logbook
 class Logbook(models.Model):
+
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
+
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     application = models.ForeignKey(InternshipApplication, on_delete=models.CASCADE)
     week_no = models.PositiveIntegerField()
     content = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     company_approval = models.BooleanField(null=True, blank=True)
     academic_supervisor_notes = models.TextField(null=True, blank=True)
     submitted_date = models.DateField()

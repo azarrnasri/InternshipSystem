@@ -36,6 +36,9 @@ urlpatterns = [
     path('student/offers/', views.student_offers, name='student_offers'),
     path('student/offers/<int:pk>/accept/', views.accept_offer, name='accept_offer'),
     path('student/offers/<int:pk>/reject/', views.reject_offer, name='reject_offer'),
+    path('student/logbook/', views.logbook_list, name='logbook_list'),
+    path('student/logbook/submit/<int:week_no>/', views.submit_logbook, name='submit_logbook'),
+    path('student/logbook/edit/<int:id>/', views.edit_logbook, name='edit_logbook'),
 
     path('company/', views.company_dashboard, name='company_dashboard'),
     path('company/attendance/', views.interns_attendance, name='interns_attendance'),
@@ -44,9 +47,13 @@ urlpatterns = [
     path('company/evaluation_form/<int:placement_id>', views.evaluate_intern, name='interns_evaluation'),
     path('company/applications/', views.supervisor_applications, name='supervisor_applications'),
     path('company/application/<int:application_id>/offer/', views.supervisor_decide, name='offer_application'),
+    path('company/logbooks/', views.company_logbook_review, name='company_logbook_review'),
+    path('company/logbook/approve/<int:id>/', views.approve_logbook, name='approve_logbook'),
+    path('company/logbook/reject/<int:id>/', views.reject_logbook, name='reject_logbook'),
 
 
     path('academic/', views.academic_dashboard, name='academic_dashboard'),
+    path('academic/logbooks/', views.academic_logbook_review, name='academic_logbook_review'),
 
     path('manager/', views.admin, name='admin'),
     path('manager/users/', views.admin_user_list, name='admin_user_list'),

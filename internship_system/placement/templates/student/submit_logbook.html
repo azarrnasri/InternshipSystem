@@ -1,0 +1,12 @@
+{% extends "student/base.html" %}
+{% block content %}
+
+<h2>Submit Logbook - Week {{ week_no }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <textarea name="content" rows="10" cols="60" required></textarea><br><br>
+    <button type="submit">Submit</button>
+</form>
+
+{% endblock %}
