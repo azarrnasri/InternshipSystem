@@ -1,26 +1,124 @@
+{% extends "company/base.html" %}
+{% load static %}
 
+{% block content %}
 
-<h2>Internship Applications</h2>
+<link rel="stylesheet" href="{% static 'placement/assets/css/company.css' %}">
 
-{% for app in applications %}
-<div class="card">
-    <p><strong>Student:</strong> {{ app.student.user.username }}</p>
-    <p><strong>Internship:</strong> {{ app.internship.title }}</p>
+<h2 class="greeting">Internship Applications</h2>
 
-    <!-- Offer Internship -->
-    <form method="post" action="{% url 'offer_application' app.id %}" style="display:inline;">
-        {% csrf_token %}
-        <input type="hidden" name="decision" value="offer">
-        <button type="submit">Offer</button>
-    </form>
+<div class="application-page-container">
+    <div class="application-header">      
+        <div class="filter-group">
+            <a href="?filter=recent" class="filter-btn {% if not show_all %}active{% endif %}">
+                Recent (90 Days)
+            </a>
+            <a href="?filter=all" class="filter-btn {% if show_all %}active{% endif %}">
+                View All
+            </a>
+        </div>
+    </div>
 
-    <!-- Reject Internship -->
-    <form method="post" action="{% url 'offer_application' app.id %}" style="display:inline;">
-        {% csrf_token %}
-        <input type="hidden" name="decision" value="reject">
-        <button type="submit">Reject</button>
-    </form>
+    <div class="table-wrapper">
+        <table class="application-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Program</th>
+                    <th>Date Applied</th>
+                    <th>Resume</th>
+                    <th>Recommendation Letter</th>
+                    <th>Handled By</th>
+                    <th>Actions</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td><strong>{{ app.student.user.username }}</strong></td>
+                    <td><strong>{{ app.student.program }}</strong></td>
+                    
+                    <td>
+                        <span style="color: #8ebebc;">
+                            <i class="far fa-calendar-alt" style="margin-right: 5px;"></i>
+                            {{ app.created_at|date:"M d, Y" }}
+                        </span>
+                        <br>
+                        <small style="font-size: 14px;">
+                            ({{ app.created_at|timesince }} ago)
+                        </small>
+                    </td>
+                    <td style="text-align: center;">
+                        {% if app.resume %}
+                            <a href="{{ app.resume.url }}" target="_blank" class="doc-link">View PDF</a>
+                        {% else %}
+                            <span class="no-doc">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        {% if app.recommendation_letter %}
+                            <a href="{{ app.recommendation_letter.url }}" target="_blank" class="doc-link">View PDF</a>
+                        {% else %}
+                            <span class="no-doc">-</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if app.handled_by %}
+                            {% if app.handled_by == request.user.companysupervisor %}
+                                <span class="badge" style="background: #005b96;">You</span>
+                            {% else %}
+                                <span class="badge" style="background: #444;">{{ app.handled_by.user.username }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: #2ecc71;">-</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if not app.handled_by %}
+                            <div class="action-group">
+                                <form method="post" action="{% url 'offer_application' app.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="decision" value="offer">
+                                    <button type="submit" class="btn-action btn-offer-sm">Offer</button>
+                                </form>
+                                <form method="post" action="{% url 'offer_application' app.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="decision" value="reject">
+                                    <button type="submit" class="btn-action btn-reject-sm">Reject</button>
+                                </form>
+                            </div>
+                        {% else %}
+                            <span style="font-style: italic;">Handled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if app.status == 'Pending' %}
+                            <span class="badge badge-pending">Pending</span>
+                        {% elif app.status == 'Offered' %}
+                            <span class="badge badge-offered">Offered</span>
+                        {% elif app.status == 'Accepted' %}
+                            <span class="badge badge-accepted">Accepted</span>
+                        {% elif app.status == 'Rejected' %}
+                            <span class="badge badge-rejected">Rejected</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No applications found in this period.</p>
+                        <small>Try switching to "View All" history.</small>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
-{% empty %}
-<p>No pending applications.</p>
-{% endfor %}
+
+{% endblock %}
+

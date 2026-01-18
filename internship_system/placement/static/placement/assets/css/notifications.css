@@ -1,0 +1,74 @@
+.notification-page {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+    text-decoration: none;
+}
+
+.notification-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    text-decoration: none;
+}
+
+.notification-controls input {
+    margin-left: auto;
+    padding: 8px 12px;
+    width: 250px;
+}
+
+.filter-btn {
+    padding: 8px 14px;
+    border: none;
+    background: #eee;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.filter-btn.active {
+    background: #007bff;
+    color: #fff;
+}
+
+.notification-card {
+    display: block;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border-left: 5px solid transparent;
+    background: #f9f9f9;
+    color: #333
+}
+
+.notification-card:hover {
+    background: #f9f9f9;
+}
+
+.notification-card.unread {
+    background: #eef5ff;
+    border-left-color: #8ebebc;
+    font-weight: 600;
+}
+
+.notification-card.read {
+    opacity: 0.85;
+}
+
+.notification-card .message {
+    font-size: 15px;
+    margin-bottom: 5px;
+}
+
+.notification-card .time {
+    font-size: 12px;
+    color: #666;
+}
+
+.mark-read {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #007bff;
+    text-decoration: none;
+}

@@ -4,7 +4,12 @@
     color: #2c3e50;
     margin: 0;
     margin-left: 15px;
+    margin-top: 15px;
 }
+
+/* =========================
+   DASHBOARD-PAGE
+   ========================= */
 
 .dashboard-cards {
     display: grid;
@@ -71,4 +76,176 @@
 .intern-list .empty {
     color: #888;
     font-style: italic;
+}
+
+/* =========================
+   APPLICATION-PAGE
+   ========================= */
+
+.application-page-container {
+    margin: 40px 20px; 
+}
+
+.application-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.filter-group {
+    background: #2d3238;
+    padding: 5px;
+    border-radius: 10px;
+    border: 1px solid #222629;
+    display: flex;
+    gap: 5px;
+}
+
+.filter-btn {
+    padding: 2px 13px;
+    border-radius: 7px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    transition: all 0.3s ease;
+}
+
+.filter-btn.active {
+    background: #8ebebc;
+    color: #1a1d20;
+}
+
+.filter-btn:hover:not(.active) {
+    background: #222629;
+    color: #8ebebc;
+}
+
+.table-wrapper {
+    border-radius: 10px;
+    border: 1px solid #333;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.application-table {
+    width: 100%;
+    border-collapse: separate;
+    font-size: 16px; 
+}
+
+.application-table th {
+    background: #222629;
+    color: #8ebebc;
+    text-transform: uppercase;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    padding: 15px;
+    text-align: left;
+    border-bottom: 2px solid #333;
+}
+
+.application-table td strong {
+    color: #ffffff; 
+}
+
+.application-table td {
+    padding: 12px 15px; 
+    color: #fff;
+    border-bottom: 2px solid #222629;
+}
+
+.application-table tbody tr {
+    background-color: #2a2e32 !important; 
+}
+
+.application-table tr:hover {
+    background: rgba(79, 195, 247, 0.03); 
+}
+
+.btn-action {
+    padding: 6px 14px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-offer-sm { 
+    background: #4fc3f7; 
+    color: #1a1d20; 
+}
+
+.btn-reject-sm { 
+    background: transparent; 
+    border: 1px solid #e74c3c; 
+    color: #e74c3c; 
+}
+
+.btn-action:hover { 
+    transform: scale(1.05); 
+    opacity: 0.9; 
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.badge-pending { 
+    background: rgba(255, 193, 7, 0.1); 
+    color: #ffc107; 
+    border: 1px solid #ffc107; 
+}
+
+.badge-offered { 
+    background: rgba(79, 195, 247, 0.1); 
+    color: #4fc3f7; 
+    border: 1px solid #4fc3f7; 
+}
+
+.badge-accepted { 
+    background: rgba(46, 204, 113, 0.1); 
+    color: #2ecc71; 
+    border: 1px solid #2ecc71;
+}
+
+.badge-rejected { 
+    background: rgba(231, 76, 60, 0.1); 
+    color: #e74c3c; 
+    border: 1px solid #e74c3c; 
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 0; 
+    color: #666;
+    background-color: #222629; 
+}
+
+.empty-state i {
+    font-size: 40px;
+    margin-bottom: 15px;
+    color: #333; 
+    display: block;
+}
+
+.empty-state p {
+    font-size: 16px;
+    margin: 0;
+    font-weight: 500;
+}
+
+.empty-state small {
+    display: block;
+    margin-top: 8px;
+    color: #4fc3f7;
+    font-size: 12px;
 }
