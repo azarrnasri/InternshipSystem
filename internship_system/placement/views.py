@@ -10,6 +10,7 @@ from django.utils import timezone
 from .decorators import role_required
 from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm
 from django.utils.timezone import now
+from datetime import timedelta
 from django.http import JsonResponse, HttpResponse
 from datetime import timedelta, date, datetime
 from .models import (
@@ -833,9 +834,12 @@ def apply_internship(request, id):
             document.doc_type = 'Resume'
             document.save()
 
-            supervisors = CompanySupervisor.objects.filter(department=internship.department)
+            company_supervisor = CompanySupervisor.objects.filter(
+                company = internship.company,
+                department=internship.department
+            )
 
-            for supervisor in supervisors:
+            for supervisor in company_supervisor:
                 Notification.objects.create(
                     user=supervisor.user,
                     message=f"New application from {student.user.username}"
@@ -858,7 +862,7 @@ def apply_internship(request, id):
 @login_required
 @role_required(['company'])
 def handle_application(request, app_id, action):
-    supervisor = CompanySupervisor.objects.get(user=request.user)
+    company_supervisor = CompanySupervisor.objects.get(user=request.user)
     application = get_object_or_404(InternshipApplication, id=app_id)
 
     # Already handled
@@ -866,64 +870,91 @@ def handle_application(request, app_id, action):
         return redirect('company_dashboard')
 
     # Wrong department
-    if application.internship.department != supervisor.department:
+    if application.internship.department != company_supervisor.department:
         return redirect('company_dashboard')
 
     if action == 'accept':
         application.status = 'Accepted'
-        application.handled_by = supervisor
+        application.handled_by = company_supervisor
         application.save()
-
-        # Notify student
-        Notification.objects.create(
-            user=application.student.user,
-            message=f"You received an internship offer for {application.internship.title}"
-        )
 
     elif action == 'reject':
         application.status = 'Rejected'
-        application.handled_by = supervisor
+        application.handled_by = company_supervisor
         application.save()
-
-        Notification.objects.create(
-            user=application.student.user,
-            message=f"Your application for {application.internship.title} was rejected"
-        )
 
     return redirect('company_dashboard')
 
 @login_required
 @role_required(['company'])
 def supervisor_applications(request):
-    supervisor = request.user.companysupervisor
+    company_supervisor = request.user.companysupervisor
+
+    # Apply the 3-month limit 
+    show_all_app = request.GET.get('filter') == 'all'
 
     applications = InternshipApplication.objects.filter(
-        internship__department=supervisor.department,
-        status='Pending'
-    )
+        internship__company=company_supervisor.company,
+        internship__department=company_supervisor.department
+    ).select_related(
+        'handled_by__user',
+        'student__user'
+    ).order_by('-created_at')
+
+    if not show_all_app:
+        three_months_ago = timezone.now() - timedelta(days=90)
+        applications = applications.filter(created_at__gte=three_months_ago)
 
     return render(request, 'company/applications.html', {
-        'applications': applications
+        'applications': applications,
+        'show_all_app': show_all_app
     })
 
 
 @login_required
 def supervisor_decide(request, application_id):
+    current_supervisor = request.user.companysupervisor
     application = InternshipApplication.objects.get(id=application_id)
 
-    if application.status != 'Pending':
-        return HttpResponse("Already handled")
+    with transaction.atomic():
+        application = InternshipApplication.objects.select_for_update().get(
+            id=application_id
+        )
 
-    if request.method == 'POST':
-        decision = request.POST.get('decision')
-        if decision == 'offer':
-            # Assign the supervisor who clicked "Offer"
-            if not application.handled_by:
-                application.handled_by = request.user.companysupervisor
-            application.status = 'Offered'
-        elif decision == 'reject':
-            application.status = 'Rejected'
-        application.save()
+        if application.handled_by:
+            return redirect('supervisor_applications')
+
+        if request.method == 'POST':
+            decision = request.POST.get('decision')
+
+            application.handled_by = current_supervisor
+
+            if decision == 'offer':
+                application.status = 'Offered'
+                message = f"You received an internship offer for {application.internship.title} at {application.internship.company}"
+            elif decision == 'reject':
+                application.status = 'Rejected'
+                message = f"Your application for {application.internship.title} was rejected"
+
+            application.save()
+
+        #Notify Student
+        Notification.objects.create(
+            user=application.student.user, 
+            message=message
+        )
+
+        #Notify OTHER supervisors in the department
+        other_supervisors = CompanySupervisor.objects.filter(
+            department=current_supervisor.department
+        ).exclude(id=current_supervisor.id)
+
+        for supervisor in other_supervisors:
+            Notification.objects.create(
+                user=supervisor.user,
+                message=f"Supervisor {request.user.username} has handled the application from {application.student.user.username}."
+            )
+
         return redirect('supervisor_applications')
     
     return redirect('supervisor_applications')
@@ -965,10 +996,9 @@ def accept_offer(request, pk):
     # Notify company supervisor
     Notification.objects.create(
         user=application.handled_by.user,
-        message=f"{application.student} accepted your internship offer."
+        message=f"Student {application.student} has accepted your internship offer."
     )
 
-    
     # Notify academic supervisor if exists
     if application.student.academic_supervisor:
         Notification.objects.create(
@@ -993,14 +1023,14 @@ def reject_offer(request, pk):
     # Notify supervisor
     Notification.objects.create(
         user=application.handled_by.user,
-        message=f"{application.student.user.username} rejected your internship offer."
+        message=f"{application.student.user.username} has rejected your internship offer."
     )
 
     # Notify academic supervisor if exists
     if application.student.academic_supervisor:
         Notification.objects.create(
             user=application.student.academic_supervisor.user,
-            message=f"{application.student.user.username} rejected an internship offer."
+            message=f"{application.student.user.username} has rejected an internship offer."
         )
 
     return redirect('student_offers')

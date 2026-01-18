@@ -1,22 +1,77 @@
-<h2>Internship Offers</h2>
+{% load static %}
 
-{% if offers %}
-  {% for app in offers %}
-    <div class="card">
-      <h3>{{ app.internship.title }}</h3>
-      <p><strong>Company:</strong> {{ app.internship.company.company_name }}</p>
-      <p><strong>Supervisor:</strong> {{ app.handled_by.user.username }}</p>
+{% block content %}
 
-    <a href="{% url 'accept_offer' app.id %}">
-        <button>Accept</button>
-    </a>
+<link rel="stylesheet" href="{% static 'placement/assets/css/notifications.css' %}">
 
-    <a href="{% url 'reject_offer' app.id %}">
-        <button>Reject</button>
-    </a>
+<div class="notification-page">
+
+    <h2>Notifications</h2>
+
+    <!-- Filters -->
+    <div class="notification-controls">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="unread">Unread</button>
+        <button class="filter-btn" data-filter="read">Read</button>
+
+        <input type="text" id="searchInput" placeholder="Search notifications...">
     </div>
-  {% endfor %}
-{% else %}
-  <p>No offers at the moment.</p>
-{% endif %}
 
+    <!-- Notification List -->
+    <div id="notificationList">
+        {% for n in notifications %}
+        <div class="notification-card {% if not n.is_read %}unread{% else %}read{% endif %}"
+             data-status="{% if not n.is_read %}unread{% else %}read{% endif %}"
+             href="{% url 'mark_notification_read' n.id %}">
+            
+            <p class="message">{{ n.message }}</p>
+            <small class="time">{{ n.created_at|date:"d M Y, H:i" }}</small>
+
+            {% if not n.is_read %}
+            <a class="mark-read"
+               href="{% url 'mark_notification_read' n.id %}">
+                Mark as read
+            </a>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p>No notifications.</p>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const buttons = document.querySelectorAll(".filter-btn");
+    const cards = document.querySelectorAll(".notification-card");
+    const searchInput = document.getElementById("searchInput");
+
+    buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            buttons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            const filter = btn.dataset.filter;
+
+            cards.forEach(card => {
+                if (filter === "all" || card.dataset.status === filter) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        });
+    });
+
+    searchInput.addEventListener("keyup", () => {
+        const value = searchInput.value.toLowerCase();
+        cards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            card.style.display = text.includes(value) ? "block" : "none";
+        });
+    });
+});
+</script>
+
+{% endblock %}
