@@ -3,6 +3,10 @@
     margin: auto;
     padding: 20px;
     text-decoration: none;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 23px;
+    font-weight: 50;
+    color: #222629;
 }
 
 .notification-controls {
@@ -69,6 +73,7 @@
     display: inline-block;
     margin-top: 6px;
     font-size: 13px;
+    font-style: italic;
     color: #007bff;
     text-decoration: none;
 }

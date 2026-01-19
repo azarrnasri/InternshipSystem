@@ -11,7 +11,7 @@ from .decorators import role_required
 from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm
 from django.utils.timezone import now
 from datetime import timedelta
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from datetime import timedelta, date, datetime
 from .models import (
     User,
@@ -131,13 +131,7 @@ def company_dashboard(request):
         attendance__date = today
     ).count()
 
-    #5. Intern list (for table / navbar)
-    interns = Student.objects.filter(
-        internshipplacement__company_supervisor = company_supervisor,
-        internshipplacement__status = 'Active'
-    ).distinct()
-
-    #6. Pending evaluation
+    #5. Pending evaluation
     pending_evaluation = PerformanceEvaluation.objects.filter(
         company_supervisor = request.user.companysupervisor,
         company_supervisor_submitted_at__isnull = True
@@ -151,7 +145,6 @@ def company_dashboard(request):
             'pending_applications': pending_applications,
             'pending_logbooks': pending_logbooks,
             'attendance_not_marked': attendance_not_marked,
-            'interns': interns,
             'pending_evaluation': pending_evaluation,
             'profile_missing': False,
         }
@@ -170,11 +163,6 @@ def interns_attendance(request):
             'placements': [],
             'today': today,
         })
-    
-    interns = Student.objects.filter(
-        internshipplacement__company_supervisor = company_supervisor,
-        internshipplacement__status = 'Active'
-    ).distinct()
 
     # Active interns 
     placements = InternshipPlacement.objects.filter(
@@ -191,7 +179,6 @@ def interns_attendance(request):
         )
     )
 
-    # Handle POST (Check-in / Check-out)
     if request.method == 'POST':
         placement_id = request.POST.get('placement_id')
         action = request.POST.get('action')
@@ -217,7 +204,6 @@ def interns_attendance(request):
     context = {
         'placements': placements,
         'today': today,
-        "interns": interns,
         'profile_missing': False,
     }
 
@@ -236,11 +222,6 @@ def attendance_summary(request):
             'placements': [],
             'selected_date': date,
         })
-    
-    interns = Student.objects.filter(
-        internshipplacement__company_supervisor = company_supervisor,
-        internshipplacement__status = 'Active'
-    ).distinct()
 
     placements = InternshipPlacement.objects.filter(
         company_supervisor=company_supervisor,
@@ -256,7 +237,6 @@ def attendance_summary(request):
     context = {
         'placements': placements,
         'selected_date': date,
-        "interns": interns,
         'profile_missing': False,
     }
 
@@ -272,11 +252,6 @@ def intern_evaluation_list(request):
             'placements': [],
             'profile_missing': True
         })
-    
-    interns = Student.objects.filter(
-        internshipplacement__company_supervisor = company,
-        internshipplacement__status = 'Active'
-    ).distinct()
 
     placements = InternshipPlacement.objects.filter(
         company_supervisor = company
@@ -294,12 +269,10 @@ def intern_evaluation_list(request):
     context = {
         'placements': placements,
         'evaluation_map': evaluation_map,
-        'interns': interns,
         'profile_missing': False
     }
 
     return render(request, 'company/evaluation.html', context)
-
 
 @login_required
 @role_required(allowed_roles=['company'])
@@ -682,20 +655,43 @@ def admin_delete_internship(request, internship_id):
 
 #student manage profile and upload docs
 @login_required
-@role_required(allowed_roles=['student'])
-def student_profile(request):
-    try:
-        student = Student.objects.get(user=request.user)
-    except Student.DoesNotExist:
-        return render(request, 'student/profile.html', {
-            'error': 'Your student profile has not been created yet. Please contact the administrator.'
-        })
+@role_required(allowed_roles=['student', 'company'])
+def student_profile(request, student_id=None):
+    # Determine the student to display
+    if student_id:
+        # Company supervisor viewing a specific student
+        if request.user.role != 'company':
+            return HttpResponseForbidden("Access denied.")
+        
+        company_supervisor = request.user.companysupervisor
+        student = get_object_or_404(
+            Student,
+            id=student_id,
+            internshipplacement__company_supervisor=company_supervisor,
+            internshipplacement__status='Active'
+        )
+        is_owner = False  
+
+    else:
+        # Student viewing their own profile
+        if request.user.role != 'student':
+            return redirect('dashboard') 
+        try:
+            student = Student.objects.get(user=request.user)
+        except Student.DoesNotExist:
+            return render(request, 'student/profile.html', {
+                'error': 'Your student profile has not been created yet. Please contact the administrator.',
+                'is_owner': True
+            })
+        is_owner = True
 
     documents = Document.objects.filter(student=student)
 
     return render(request, 'student/profile.html', {
         'student': student,
-        'documents': documents
+        'documents': documents,
+        'is_owner': is_owner,  
+        'base_template': 'company/base.html' if not is_owner else 'student/base.html'
     })
 
 @login_required

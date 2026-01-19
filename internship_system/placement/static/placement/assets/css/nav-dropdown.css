@@ -1,6 +1,7 @@
 .nav-interns, .nav-attendance {
     position: relative;
     background-color: #222629;
+    cursor: pointer;
 }
 
 /* Intern dropdown*/

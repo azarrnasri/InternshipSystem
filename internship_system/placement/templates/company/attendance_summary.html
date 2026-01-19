@@ -5,59 +5,63 @@
 
 {% block content %}
 
-<link rel="stylesheet" href="{% static 'placement/assets/css/company.css' %}">
-
 {% if profile_missing %}
     <p style="color:red; margin-left: 15px;margin-top: 25px;">Company supervisor profile not set up.</p>
 {% else %}
 
-<h2 class="page-title">Attendance Summary</h2>
+<h2 class="greeting">Attendance Summary</h2>
 
 <div class="summary-card">
 
-    <!-- Date Filter -->
-    <form method="get" class="date-filter">
-        <label for="date">Date:</label>
-        <input type="date" name="date" value="{{ date }}">
-        <button type="submit">View</button>
-    </form>
+    <div class="date-filter-container">
+        <form method="get" class="date-filter">
+            <label for="date">Date:</label>
+            <input type="date" name="date" value="{{ date }}">
+            <button type="submit">View</button>
+        </form>
+    </div>
 
-    <!-- Summary Table -->
-    <table class="attendance-table">
-        <thead>
-            <tr>
-                <th>Intern</th>
-                <th>Check In</th>
-                <th>Check Out</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for placement in placements %}
-                {% with attendance=placement.attendance_for_date.0 %}
+     <div class="table-wrapper">
+        <table class="attendance-table">
+            <thead>
                 <tr>
-                    <td><strong>{{ placement.student.user.username }}</strong></td>
+                    <th>Intern</th>
+                    <th>Check In</th>
+                    <th>Check Out</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for placement in placements %}
+                    {% with attendance=placement.attendance_for_date.0 %}
+                    <tr>
+                        <td><strong>{{ placement.student.user.username }}</strong></td>
 
-                    {% if attendance %}
-                        <td>{{ attendance.check_in|default:"—" }}</td>
-                        <td>{{ attendance.check_out|default:"—" }}</td>
-                        <td class="status present">Present</td>
-                    {% else %}
-                        <td>—</td>
-                        <td>—</td>
-                        <td class="status absent">Absent</td>
-                    {% endif %}
-                </tr>
-                {% endwith %}
-            {% empty %}
-                <tr>
-                    <td colspan="4" class="empty">
-                        No interns assigned.
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                        {% if attendance %}
+                            <td>{{ attendance.check_in|default:"—" }}</td>
+                            <td>{{ attendance.check_out|default:"—" }}</td>
+                            <td>
+                                <span class="status present">Present</span>
+                            </td>
+                        {% else %}
+                            <td>—</td>
+                            <td>—</td>
+                            <td>
+                                <span class="status absent">Absent</span>
+                            </td>
+                        {% endif %}
+                    </tr>
+                    {% endwith %}
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="empty-state">
+                            No interns assigned.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
 </div>
 
