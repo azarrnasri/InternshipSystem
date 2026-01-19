@@ -129,3 +129,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/documents/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'documents')
+
+USE_TZ = True
+TIME_ZONE = 'Asia/Kuala_Lumpur'
