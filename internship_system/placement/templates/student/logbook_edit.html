@@ -1,6 +1,7 @@
 {% extends "student/base.html" %}
 {% block content %}
 
+<div class="form-wrapper">
 <h2>Edit Logbook - Week {{ logbook.week_no }}</h2>
 
 {% if error %}
@@ -12,5 +13,5 @@
     <button type="submit">Update</button>
 </form>
 {% endif %}
-
+</div>
 {% endblock %}

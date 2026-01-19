@@ -1,6 +1,7 @@
 {% extends "student/base.html" %}
 
 {% block content %}
+<div class="profile-wrapper">
 <h2>Attendance Summary — {{ start_date|date:"F Y" }}</h2>
 
 {% if profile_missing %}
@@ -8,7 +9,7 @@
 {% else %}
 
 <!-- Month/Year selector form -->
-<form method="get" style="margin-bottom: 20px;">
+<form method="get" class="filter-form">
     <label>Month:
         <select name="month">
             {% for m in months %}
@@ -51,4 +52,5 @@
 {% endif %}
 
 {% endif %}
+</div>
 {% endblock %}
