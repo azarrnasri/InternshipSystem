@@ -2,7 +2,10 @@
 {% load static %}
 
 {% block content %}
-<h2>Available Internships</h2>
+
+<div class="profile-wrapper">
+
+<h2 class="page-title">Available Internships</h2>
 
 <!-- FILTER FORM -->
 <form method="get" class="filter-form">
@@ -35,7 +38,7 @@
 
 <!-- INTERNSHIP LIST -->
 {% for internship in internships %}
-    <div class="card">
+    <div class="internship-card">
         <h3>{{ internship.title }}</h3>
         <p><strong>Company:</strong> {{ internship.company.company_name }}</p>
         <p><strong>Location:</strong> {{ internship.location }}</p>
@@ -43,7 +46,7 @@
         <p><strong>Slots:</strong> {{ internship.total_slots }}</p>
 
     {% if internship.has_applied %}
-        <span>Already Applied</span>
+        <span class="badge badge-applied">Already Applied</span>
     {% else %}
         <a href="{% url 'apply_internship' internship.id %}" class="btn">
             Apply Now
@@ -56,4 +59,8 @@
 {% empty %}
     <p>No internships found.</p>
 {% endfor %}
+
+</div>
 {% endblock %}
+
+

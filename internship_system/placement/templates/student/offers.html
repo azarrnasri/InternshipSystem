@@ -3,9 +3,11 @@
 
 {% block content %}
 
-<h2>Application Status</h2>
+<div class="profile-wrapper">
 
-<table class="application-table">
+<h2 class="page-title">Application Status</h2>
+
+<table class="document-table">
     <thead>
         <tr>
             <th>Internship</th>
@@ -28,6 +30,7 @@
 
     <td>
         {% if app.status == "Offered" and app.student_decision == "Pending" %}
+        <div class="action-buttons">
           <form method="post" action="{% url 'accept_offer' app.id %}" style="display:inline;">
             {% csrf_token %}
             <button type="submit">Accept</button>
@@ -37,6 +40,7 @@
             {% csrf_token %}
             <button type="submit">Reject</button>
           </form>
+        </div>
         {% else %}
             —
         {% endif %}
@@ -45,5 +49,8 @@
 </tr>
 {% endfor %}
 </tbody>
+
+</table>
+</div>
 
 {% endblock %}

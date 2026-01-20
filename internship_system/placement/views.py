@@ -9,7 +9,7 @@ from django.db.models import Q, Prefetch, Exists, OuterRef, Count
 from django.utils import timezone
 from .decorators import role_required
 from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm
-from django.utils.timezone import now
+from django.utils.timezone import now, localtime
 from datetime import timedelta
 from django.http import JsonResponse, HttpResponseForbidden
 from datetime import timedelta, date, datetime
@@ -69,14 +69,47 @@ def dashboard_redirect(request):
         return redirect('login')
 
 # --- Individual dashboards ---
+@login_required
 @role_required(allowed_roles=['student'])
 def student_dashboard(request):
+    student = request.user.student
+
+    # Placement status
+    placement = InternshipPlacement.objects.filter(
+        student=student,
+        status='Active'
+    ).first()
+
+    placement_status = 'Assigned' if placement else 'Not Assigned'
+
+    # Total internship applications
+    application_count = InternshipApplication.objects.filter(
+        student=student
+    ).count()
+
+    # Logbook status (latest submission)
+    latest_logbook = Logbook.objects.filter(
+        student=student
+    ).order_by('-submitted_date').first()
+
+    if latest_logbook:
+        logbook_status = latest_logbook.status
+    else:
+        logbook_status = 'Not Submitted'
+
+    # Unread notifications
+    notification_count = Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).count()
+
     context = {
-        'placement_status': 'Not Assigned',
-        'application_count': 0,
-        'logbook_status': 'Not Submitted',
-        'notification_count': 0,
+        'placement_status': placement_status,
+        'application_count': application_count,
+        'logbook_status': logbook_status,
+        'notification_count': notification_count,
     }
+
     return render(request, 'student/dashboard.html', context)
 
 @login_required
@@ -192,11 +225,11 @@ def interns_attendance(request):
         attendance, created = Attendance.objects.get_or_create(
             placement = placement,
             date = today,
-            defaults={'check_in': now().time()}
+            defaults={'check_in': localtime(now()).time()}
         )
 
         if action == 'checkout' and attendance.check_out is None:
-            attendance.check_out = now().time()
+            attendance.check_out = localtime(now()).time()
             attendance.save()
 
         return redirect('interns_attendance')

@@ -2805,6 +2805,12 @@ button:hover {
   font-size: 16px;
 }
 
+.document-table th:last-child,
+.document-table td:last-child {
+  width: 220px;        /* enough space for 2 buttons */
+  text-align: center;
+}
+
 .document-actions {
   text-align: right;
   background: rgba(255, 255, 255, 0.6);
@@ -2836,7 +2842,6 @@ form select {
   padding: 1.5em;
   border-radius: 0.35em;
   box-shadow: 0 0.05em 0.2em rgba(0, 0, 0, 0.08);
-  margin-bottom: 2em;
 }
 
 .profile-wrapper form p {
@@ -2881,6 +2886,121 @@ form select {
 
 .unread {
     background: #eef;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-buttons form {
+  background: none !important;
+  backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0;
+}
+
+.accept-btn {
+  background: #5cb85c;
+  color: #fff;
+}
+
+.accept-btn:hover {
+  background: #4cae4c;
+}
+
+.reject-btn {
+  background: #e27689;
+  color: #fff;
+}
+
+.reject-btn:hover {
+  background: #cf5f72;
+}
+
+.filter-form {
+  max-width: 700px;        /* smaller width */
+  margin: 0 auto 2em;     /* center horizontally */
+  display: flex;
+  gap: 0.6em;
+  justify-content: center;
+  align-items: center;
+  padding: 1em 1.2em;
+
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(8px);
+  border-radius: 0.6em;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+.filter-form input,
+.filter-form select {
+  font-size: 14px;        /* slightly smaller */
+  padding: 0.45em 0.7em;
+  min-width: 140px;
+}
+
+.filter-form button {
+  font-size: 16px;
+  padding: 0.45em 1em;
+}
+
+.internship-card {
+  max-width: 850px;    
+  margin: 0 auto 1.5em;
+}
+
+.internship-card h3 {
+  margin-bottom: 0.5em;
+  color: #444;
+}
+
+.internship-card p {
+  margin: 0.35em 0;
+  font-size: 16px;
+}
+
+.internship-card .btn {
+  margin-top: 0.8em;
+  display: inline-block;
+}
+
+@media screen and (max-width: 768px) {
+  .filter-form {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .internship-card {
+    margin: 0 1em 1.2em;
+  }
+}
+
+/* =========================
+   STATUS BADGES
+   ========================= */
+
+.badge {
+  display: inline-block;
+  padding: 0.3em 0.75em;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 999px; /* pill shape */
+  margin-top: 0.6em;
+}
+
+.badge-applied {
+  background: rgba(142, 190, 188, 0.15);
+  color: #5b8d8b;
+  border: 1px solid rgba(142, 190, 188, 0.4);
+}
+
+.internship-card .badge {
+  margin-left: 0;
 }
 
 
