@@ -1,20 +1,17 @@
 {% extends "company/base.html" %}
 {% load static %}
 
-{% block title %}Attendance{% endblock %}
+{% block title %}Interns Attendance{% endblock %}
 
 {% block content %}
-
-<link rel="stylesheet" href="{% static 'placement/assets/css/company.css' %}">
 
 {% if profile_missing %}
     <p style="color:red; margin-left: 15px;margin-top: 25px;">Company supervisor profile not set up.</p>
 {% else %}
 
-<h2 class="page-title">Attendance – Today ({{ today }})</h2>
+<h2 class="greeting">Attendance – Today ({{ today }})</h2>
 
-<div class="attendance-card">
-
+<div class="table-wrapper">
     <table class="attendance-table">
         <thead>
             <tr>
@@ -61,14 +58,13 @@
                 {% endwith %}
             {% empty %}
                 <tr>
-                    <td colspan="4" class="empty">
+                    <td colspan="4" class="empty-state">
                         No interns assigned.
                     </td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
-
 </div>
 
 {% endif %}

@@ -1,4 +1,4 @@
-{% extends 'student/base.html' %}
+{% extends base_template %}
 
 {% block content %}
 <div class="profile-wrapper">
@@ -69,8 +69,11 @@
     </table>
 
     <div class="profile-actions">
-      <a href="{% url 'update_email' %}" class="btn">Edit Email</a>
-      <a href="{% url 'upload_document' %}" class="btn secondary">Upload Document</a>
+      <!-- Show edit links only for the student owner -->
+      {% if is_owner %}
+          <a href="{% url 'update_email' %}" class="btn">Update Email</a>
+          <a href="{% url 'upload_document' %}" class="btn secondary">Upload Document</a>
+      {% endif %}
     </div>
   </div>
 
@@ -92,8 +95,10 @@
 
       <tr>
         <td colspan="2" class="document-actions">
-          <a href="{% url 'edit_document' doc.id %}" class="edit-btn">Edit</a>
-          <a href="{% url 'delete_document' doc.id %}" class="delete-btn">Delete</a>
+          {% if is_owner %}
+            <a href="{% url 'edit_document' doc.id %}" class="edit-btn">Edit</a>
+            <a href="{% url 'delete_document' doc.id %}" class="delete-btn">Delete</a>
+          {% endif %}
         </td>
       </tr>
     </table>

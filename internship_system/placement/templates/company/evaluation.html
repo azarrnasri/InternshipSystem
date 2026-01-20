@@ -1,50 +1,55 @@
 {% extends "company/base.html" %}
+{% load static %}
 
-{% block title %}Internship Application List{% endblock %}
+{% block title %}Interns Evaluation List{% endblock %}
 
 {% block content %}
 
-<h2>Intern Evaluations</h2>
+<h2 class="greeting">Interns Evaluation</h2>
 
 {% if profile_missing %}
     <p>Your supervisor profile is not set up.</p>
 
 {% elif placements %}
-    <table>
-        <tr>
-            <th>Intern</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
+<div class="table-wrapper">
+    <table class="evaluation-table">
+        <thead>
+            <tr>
+                <th>Intern</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
 
-        {% for placement in placements %}
-        <tr>
-            <td>{{ placement.student.user.username }}</td>
+        <tbody>
+            {% for placement in placements %}
+            <tr>
+                <td>{{ placement.student.user.username }}</td>
+                <td>
+                    {% if evaluation_map|dictsort:placement.id %}
+                        <span class="badge badge-accepted">Evaluated</span>
+                    {% else %}
+                        <span class="badge badge-pending">Not Evaluated</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if placement.status != "Completed" %}
+                        <span class="action-disabled">Not accessible yet</span>
 
-            <td>
-                {% if evaluation_map|dictsort:placement.id %}
-                    Evaluated
-                {% else %}
-                    Not Evaluated
-                {% endif %}
-            </td>
+                    {% elif evaluation_map|dictsort:placement.id %}
+                        <span class="completed">Completed</span>
 
-            <td>
-                {% if placement.status != "Completed" %}
-                    <span>Not accessible yet</span>
-
-                {% elif evaluation_map|dictsort:placement.id %}
-                    <span>Completed</span>
-
-                {% else %}
-                    <a href="{% url 'interns_evaluation' placement.id %}">
-                        Evaluate
-                    </a>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
+                    {% else %}
+                        <a href="" class="btn-action btn-evaluate">
+                            Evaluate
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
+</div>
 
 {% else %}
     <p>No interns assigned.</p>

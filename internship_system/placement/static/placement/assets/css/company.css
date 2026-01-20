@@ -4,7 +4,7 @@
     color: #2c3e50;
     margin: 0;
     margin-left: 15px;
-    margin-top: 15px;
+    margin-top: 20px;
 }
 
 /* =========================
@@ -79,12 +79,8 @@
 }
 
 /* =========================
-   APPLICATION-PAGE
+   APPLICATION-PAGE, ATTENDANCE-PAGE, EVALUATION PAGE
    ========================= */
-
-.application-page-container {
-    margin: 40px 20px; 
-}
 
 .application-header {
     display: flex;
@@ -123,19 +119,39 @@
 }
 
 .table-wrapper {
-    border-radius: 10px;
+    margin: 0px 15px;
     border: 1px solid #333;
-    overflow: hidden;
+    border-radius: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-.application-table {
+.table-wrapper::-webkit-scrollbar {
+    height: 7px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #8ebebc;
+    border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #222629;
+}
+
+.application-table,
+.attendance-table,
+.evaluation-table {
     width: 100%;
+    min-width: 1100px;
+    margin: 0;
     border-collapse: separate;
     font-size: 16px; 
 }
 
-.application-table th {
+.application-table th,
+.evaluation-table th {
     background: #222629;
     color: #8ebebc;
     text-transform: uppercase;
@@ -147,21 +163,37 @@
     border-bottom: 2px solid #333;
 }
 
-.application-table td strong {
-    color: #ffffff; 
-}
-
-.application-table td {
+.application-table td,
+.evaluation-table td {
     padding: 12px 15px; 
     color: #fff;
     border-bottom: 2px solid #222629;
 }
 
-.application-table tbody tr {
+.application-table td strong,
+.attendance-table td strong {
+    color: #ffffff; 
+}
+
+.application-table td form,
+.attendance-table td form,
+.evaluation-table td form {
+    background: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+}
+
+.application-table tbody tr,
+.attendance-table tbody tr,
+.evaluation-table tbody tr {
     background-color: #2a2e32 !important; 
 }
 
-.application-table tr:hover {
+.application-table tbody tr:hover td,
+.attendance-table tbody tr:hover td,
+.evaluation-table tbody tr:hover td {
     background: rgba(79, 195, 247, 0.03); 
 }
 
@@ -177,13 +209,11 @@
 
 .btn-offer-sm { 
     background: #4fc3f7; 
-    color: #1a1d20; 
 }
 
 .btn-reject-sm { 
-    background: transparent; 
+    background: #e74c3c; 
     border: 1px solid #e74c3c; 
-    color: #e74c3c; 
 }
 
 .btn-action:hover { 
@@ -249,3 +279,223 @@
     color: #4fc3f7;
     font-size: 12px;
 }
+
+/* =========================
+   ATTENDANCE-PAGE
+   ========================= */
+
+.date-filter-container {
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+.date-filter {
+    border: 2px solid #222629;
+}
+
+.date-filter label {
+    font-weight: 400;
+    color: #222629;
+}
+
+.attendance-table th {
+    background: #222629;
+    color: #8ebebc;
+    text-transform: uppercase;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    padding: 14px 15px;
+    text-align: left;
+    border-bottom: 2px solid #333;
+    white-space: nowrap;
+}
+
+.attendance-table td {
+    padding: 14px 15px;
+    color: #ffffff;
+    font-size: 16px !important;
+    border-bottom: 2px solid #222629;
+    white-space: nowrap;         /* ALWAYS one row */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn.checkin {
+    background: #2ecc71;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn.checkout {
+    background: #4fc3f7;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn.checkin:hover,
+.btn.checkout:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+.status.completed {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.status.absent {
+    background: rgba(231, 76, 60, 0.1); 
+    color: #e74c3c; 
+    border: 1px solid #e74c3c;
+    font-size: 16px;
+    border-radius: 3px;
+    padding: 5px 5px;
+}
+
+.status.present {
+    background: rgba(46, 204, 113, 0.1); 
+    color: #2ecc71; 
+    border: 1px solid #2ecc71;
+    font-size: 16px;
+    border-radius: 3px;
+    padding: 5px 5px;
+}
+
+/* =========================
+   EVALUATION-PAGE
+   ========================= */
+
+.evaluation-table td,
+.evaluation-table th {
+    white-space: nowrap;
+}
+
+.evaluation-table .action-disabled {
+    color: #fff;
+    font-size: 16px;
+    font-style: italic;
+}
+
+.evaluation-table .completed {
+    color: #2ecc71;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.btn-action {
+    padding: 6px 14px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-evaluate {
+    background: #4fc3f7;
+    color: #1a1d20;
+}
+
+.btn-action:hover {
+    transform: scale(1.05);
+}
+
+/* =========================
+   EVALUATION-FORM-PAGE
+   ========================= */
+
+.evaluation-form {
+    max-width: 900px;
+    margin: 30px auto;
+    background: #2a2e32;
+    padding: 35px 40px;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+.evaluation-form p {
+    font-size: 15px;
+    font-weight: 500;
+    color: #ffffff;
+    margin-bottom: 14px;
+}
+
+.evaluation-form label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 20px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #d6d6d6;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.evaluation-form label:hover {
+    color: #4fc3f7;
+}
+
+.evaluation-form input[type="radio"] {
+    accent-color: #4fc3f7;
+    cursor: pointer;
+}
+
+.evaluation-form hr {
+    border: none;
+    border-top: 1px solid #222629;
+    margin: 25px 0;
+}
+
+.evaluation-form textarea {
+    width: 100%;
+    min-height: 120px;
+    background: #1f2327;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 12px;
+    color: #ffffff;
+    font-size: 13px;
+    resize: vertical;
+}
+
+.evaluation-form textarea:focus {
+    outline: none;
+    border-color: #4fc3f7;
+    box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.15);
+}
+
+.evaluation-form button {
+    display: block;
+    margin: 30px auto 0;
+    padding: 10px 30px;
+    background: #4fc3f7;
+    color: #1a1d20;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.evaluation-form button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(79, 195, 247, 0.35);
+} 
