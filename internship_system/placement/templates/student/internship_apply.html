@@ -12,6 +12,8 @@
     {% csrf_token %}
 
     {{ app_form.as_p }}
+    
+    <p style="color: #666; font-style: italic; margin: 10px 0;">Please submit your resume.</p>
     {{ doc_form.as_p }}
 
     <button type="submit">Apply Now</button>

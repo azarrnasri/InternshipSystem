@@ -719,10 +719,17 @@ def student_profile(request, student_id=None):
         is_owner = True
 
     documents = Document.objects.filter(student=student)
+    
+    # Get the active placement for the student
+    placement = InternshipPlacement.objects.filter(
+        student=student,
+        status='Active'
+    ).first()
 
     return render(request, 'student/profile.html', {
         'student': student,
         'documents': documents,
+        'placement': placement,
         'is_owner': is_owner,  
         'base_template': 'company/base.html' if not is_owner else 'student/base.html'
     })
@@ -1020,6 +1027,12 @@ def accept_offer(request, pk):
         start_date=application.internship.start_date,
         end_date=application.internship.end_date,
         status='Active'
+    )
+
+    # Notify student about company supervisor assignment
+    Notification.objects.create(
+        user=application.student.user,
+        message=f"You have been assigned to {application.handled_by.user.username} from {application.internship.company.company_name}."
     )
 
     # Notify company supervisor
