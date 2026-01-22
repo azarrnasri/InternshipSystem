@@ -50,8 +50,7 @@ urlpatterns = [
     path('company/applications/', views.supervisor_applications, name='supervisor_applications'),
     path('company/application/<int:application_id>/offer/', views.supervisor_decide, name='offer_application'),
     path('company/logbooks/', views.company_logbook_review, name='company_logbook_review'),
-    path('company/logbook/approve/<int:id>/', views.approve_logbook, name='approve_logbook'),
-    path('company/logbook/reject/<int:id>/', views.reject_logbook, name='reject_logbook'),
+    path('company/logbook/review/<int:logbook_id>/', views.review_logbook, name='review_logbook'),
 
 
     path('academic/', views.academic_dashboard, name='academic_dashboard'),

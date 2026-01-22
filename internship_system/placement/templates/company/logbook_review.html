@@ -1,40 +1,69 @@
-{% extends "Company/base.html" %}
+{% extends "company/base.html" %}
 {% load static %}
+
+{% block title %}Pending Logbook{% endblock %}
 
 {% block content %}
 
-<h2>Logbook Review</h2>
+<h2 class="greeting">Logbook Review</h2>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Student</th>
-            <th>Week</th>
-            <th>Content</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
-    </thead>
+<div class="table-wrapper">
+    <table class="logbook-table">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Week</th>
+                <th>Content</th>
+                <th>Review</th>
+                <th>Action</th>
+                <th>Status</th>
+            </tr>
+        </thead>
 
-    <tbody>
-    {% for logbook in logbooks %}
-        <tr>
-            <td>{{ logbook.student.user.username }}</td>
-            <td>Week {{ logbook.week_no }}</td>
-            <td>{{ logbook.content }}</td>
-            <td>{{ logbook.status }}</td>
+        <tbody>
+            {% if logbooks %}
+                {% for logbook in logbooks %}
+                    <tr>
+                        <td>{{ logbook.student.user.username }}</td>
+                        <td>Week {{ logbook.week_no }}</td>
+                        <td>{{ logbook.content }}</td>
+                        <td>
+                            <form method="post" action="{% url 'review_logbook' logbook.id %}">
+                                {% csrf_token %}
+                                <textarea name="company_review" rows="3" placeholder="Enter your review here...">
+                                    {{ logbook.company_supervisor_notes|default:"" }}
+                                </textarea>
+                        </td>
 
-            <td>
-                {% if logbook.status == 'Pending' %}
-                    <a href="{% url 'approve_logbook' logbook.id %}" class="btn btn-success btn-sm">Approve</a>
-                    <a href="{% url 'reject_logbook' logbook.id %}" class="btn btn-danger btn-sm">Reject</a>
-                {% else %}
-                    <span>-</span>
-                {% endif %}
-            </td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+                        <td class="logbook-actions">
+                            {% if logbook.status == 'Pending' %}
+                                <button type="submit" name="action" value="approve" class="approve">
+                                    Approve
+                                </button>
+                                <button type="submit" name="action" value="reject" class="reject">
+                                    Reject
+                                </button>
+                            {% else %}
+                                <span>-</span>
+                            {% endif %}
+                            </form>
+                        </td>
+                        <td>
+                            {% if logbook.status == 'Pending' %}
+                                <span class="badge badge-pending">Pending</span>
+                            {% elif logbook.status == 'Approved' %}
+                                <span class="badge badge-accepted">Approved</span>
+                            {% elif logbook.status == 'Rejected' %}
+                                <span class="badge badge-rejected">Rejected</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="6" class="empty-state">No logbooks to review.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
 
 {% endblock %}

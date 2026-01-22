@@ -290,10 +290,8 @@ def intern_evaluation_list(request):
         company_supervisor = company
     ).select_related('student')
 
-    evaluation_map = {}
-
     for placement in placements:
-        evaluation_map[placement.id] = PerformanceEvaluation.objects.filter(
+        placement.is_evaluated = PerformanceEvaluation.objects.filter(
             application__student = placement.student,
             company_supervisor = company,
             company_supervisor_submitted_at__isnull=False
@@ -301,7 +299,6 @@ def intern_evaluation_list(request):
 
     context = {
         'placements': placements,
-        'evaluation_map': evaluation_map,
         'profile_missing': False
     }
 
@@ -316,34 +313,40 @@ def evaluate_intern(request, placement_id):
         company_supervisor__user=request.user
     )
 
-    #if placement.status != 'Completed':
-    #    return render(request, 'Company/evaluation_locked.html')
-
     evaluation, created = PerformanceEvaluation.objects.get_or_create(
         student = placement.student,
         company_supervisor = placement.company_supervisor,
         academic_supervisor = placement.student.academic_supervisor,
         application=InternshipApplication.objects.filter(
-            student = placement.student
+            student = placement.student,
+            internship = placement.internship
         ).first()
     )
 
     if evaluation.company_supervisor_submitted_at:
-        return render(request, 'company/evaluation_done.html')
+        return redirect('evaluation_list')
 
     if request.method == 'POST':
-        scores = [
-            int(request.POST['q1']),
-            int(request.POST['q2']),
-            int(request.POST['q3']),
-            int(request.POST['q4']),
-            int(request.POST['q5']),
-        ]
+        evaluation.company_supervisor_score = request.POST['score']
+        question_answers = {
+            'q1': int(request.POST['q1']),
+            'q2': int(request.POST['q2']),
+            'q3': int(request.POST['q3']),
+            'q4': int(request.POST['q4']),
+            'q5': int(request.POST['q5']),
+        }
 
-        evaluation.company_supervisor_score = sum(scores)
+        evaluation.company_question_answers = question_answers
         evaluation.company_supervisor_comment = request.POST.get('comment')
         evaluation.company_supervisor_submitted_at = now()
         evaluation.save()
+
+        # Notify academic supervisor if exists
+        if evaluation.academic_supervisor:
+            Notification.objects.create(
+                user=evaluation.academic_supervisor.user,
+                message=f"Company Supervisor has submitted evaluation form for {evaluation.student.user.username}."
+            )
 
         return redirect('evaluation_list')
 
@@ -935,6 +938,12 @@ def supervisor_applications(request):
     ).select_related(
         'handled_by__user',
         'student__user'
+    ).prefetch_related(  # fetch resumes
+        Prefetch(
+            'student__document_set',
+            queryset=Document.objects.filter(doc_type='Resume'),
+            to_attr='resumes'
+        )
     ).order_by('-created_at')
 
     if not show_all_app:
@@ -1155,7 +1164,7 @@ def submit_logbook(request, week_no):
         messages.error(request, "No accepted application found.")
         return redirect('logbook_list')
 
-    # 🔒 Deadline check
+    # Deadline check
     start_date = placement.start_date
     deadline = start_date + timedelta(days=week_no * 7)
 
@@ -1180,6 +1189,19 @@ def submit_logbook(request, week_no):
             status='Pending'
         )
 
+    # Notify Supervisors
+    if placement.company_supervisor:
+        Notification.objects.create(
+            user=placement.company_supervisor.user,
+            message=f"{student.user.username} submitted logbook for Week {week_no}."
+        )
+
+    if student.academic_supervisor:
+        Notification.objects.create(
+            user=student.academic_supervisor.user,
+            message=f"{student.user.username} submitted logbook for Week {week_no}."
+        )
+
         messages.success(request, "Logbook submitted successfully.")
         return redirect('logbook_list')
 
@@ -1193,6 +1215,7 @@ def submit_logbook(request, week_no):
 def edit_logbook(request, id):
     student = get_object_or_404(Student, user=request.user)
     logbook = get_object_or_404(Logbook, id=id, student=student)
+    placement = InternshipPlacement.objects.filter(student=student, status='Active').first()
 
     if logbook.status != 'Pending':
         return render(request, 'student/logbook_edit.html', {
@@ -1203,6 +1226,18 @@ def edit_logbook(request, id):
         logbook.content = request.POST.get('content')
         logbook.updated_at = date.today()
         logbook.save()
+
+        if placement and placement.company_supervisor:
+            Notification.objects.create(
+                user=placement.company_supervisor.user,
+                message=f"{student.user.username} updated logbook for Week {logbook.week_no}."
+            )
+
+        if student.academic_supervisor:
+            Notification.objects.create(
+                user=student.academic_supervisor.user,
+                message=f"{student.user.username} updated logbook for Week {logbook.week_no}."
+            )
 
         messages.success(request, "Logbook updated.")
         return redirect('logbook_list')
@@ -1230,30 +1265,53 @@ def company_logbook_review(request):
         'logbooks': logbooks
     })
 
-#Approve/Reject Logbook
 @login_required
 @role_required(['company'])
-def approve_logbook(request, id):
-    logbook = get_object_or_404(Logbook, id=id)
-    logbook.company_approval = True
-    logbook.status = 'Approved'
-    logbook.approved_at = date.today()
-    logbook.save()
+def review_logbook(request, logbook_id):
+    logbook = get_object_or_404(Logbook, id=logbook_id)
 
-    messages.success(request, "Logbook approved.")
-    return redirect('company_logbook_review')
+    if request.method == 'POST':
+        review = request.POST.get('company_review')
+        action = request.POST.get('action')
 
+        # Save company review
+        logbook.company_supervisor_notes = review
 
-@login_required
-@role_required(['company'])
-def reject_logbook(request, id):
-    logbook = get_object_or_404(Logbook, id=id)
-    logbook.company_approval = False
-    logbook.status = 'Rejected'
-    logbook.save()
+        if action == 'approve':
+            logbook.company_approval = True
+            logbook.status = 'Approved'
+            logbook.approved_at = date.today()
 
-    messages.warning(request, "Logbook rejected.")
-    return redirect('company_logbook_review')
+            Notification.objects.create(
+                user=logbook.student.user,
+                message=f"Your logbook for Week {logbook.week_no} has been approved by {request.user.username}."
+            )
+
+            if logbook.student.academic_supervisor:
+                Notification.objects.create(
+                    user=logbook.student.academic_supervisor.user,
+                    message=f"{logbook.student.user.username}'s logbook for Week {logbook.week_no} was approved by the Company Supervisor."
+                )
+
+        elif action == 'reject':
+            logbook.company_approval = False
+            logbook.status = 'Rejected'
+
+            Notification.objects.create(
+                user=logbook.student.user,
+                message=f"Your logbook for Week {logbook.week_no} was rejected. Please review and resubmit."
+            )
+
+            if logbook.student.academic_supervisor:
+                Notification.objects.create(
+                    user=logbook.student.academic_supervisor.user,
+                    message=f"{logbook.student.user.username}'s logbook for Week {logbook.week_no} was rejected by the Company Supervisor."
+                )
+
+        logbook.save()
+
+        messages.success(request, "Logbook reviewed successfully.")
+        return redirect('company_logbook_review')
 
 #Academic Supervisor view approved logbook
 @login_required

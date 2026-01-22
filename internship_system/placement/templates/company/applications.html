@@ -26,9 +26,8 @@
                     <th>Student</th>
                     <th>Program</th>
                     <th>Date Applied</th>
-                    <th>Resume</th>
-                    <th>Recommendation Letter</th>
-                    <th>Handled By</th>
+                    <th style="text-align: center;">Resume</th>
+                    <th style="text-align: center;">Handled By</th>
                     <th>Actions</th>
                     <th>Status</th>
                 </tr>
@@ -50,20 +49,12 @@
                         </small>
                     </td>
                     <td style="text-align: center;">
-                        {% if app.resume %}
-                            <a href="{{ app.resume.url }}" target="_blank" class="doc-link">View PDF</a>
+                        {% if app.student.resumes %}
+                            <a href="{{ app.student.resumes.0.file.url }}" target="_blank" class="doc-link">View PDF</a>
                         {% else %}
                             <span class="no-doc">-</span>
                         {% endif %}
                     </td>
-                    <td style="text-align: center;">
-                        {% if app.recommendation_letter %}
-                            <a href="{{ app.recommendation_letter.url }}" target="_blank" class="doc-link">View PDF</a>
-                        {% else %}
-                            <span class="no-doc">-</span>
-                        {% endif %}
-                    </td>
-
                     <td>
                         {% if app.handled_by %}
                             {% if app.handled_by == request.user.companysupervisor %}
