@@ -142,7 +142,8 @@
 
 .application-table,
 .attendance-table,
-.evaluation-table {
+.evaluation-table,
+.logbook-table {
     width: 100%;
     min-width: 1100px;
     margin: 0;
@@ -151,7 +152,9 @@
 }
 
 .application-table th,
-.evaluation-table th {
+.attendance-table th,
+.evaluation-table th,
+.logbook-table th {
     background: #222629;
     color: #8ebebc;
     text-transform: uppercase;
@@ -161,6 +164,7 @@
     padding: 15px;
     text-align: left;
     border-bottom: 2px solid #333;
+    white-space: nowrap;
 }
 
 .application-table td,
@@ -187,13 +191,15 @@
 
 .application-table tbody tr,
 .attendance-table tbody tr,
-.evaluation-table tbody tr {
+.evaluation-table tbody tr,
+.logbook-table tbody tr {
     background-color: #2a2e32 !important; 
 }
 
 .application-table tbody tr:hover td,
 .attendance-table tbody tr:hover td,
-.evaluation-table tbody tr:hover td {
+.evaluation-table tbody tr:hover td,
+.logbook-table tbody tr:hover td {
     background: rgba(79, 195, 247, 0.03); 
 }
 
@@ -281,6 +287,102 @@
 }
 
 /* =========================
+  LOGBOOK-PAGE
+   ========================= */
+
+.logbook-table td {
+    padding: 14px 15px;
+    font-size: 16px;
+    color: #ffffff;
+    border-bottom: 1px solid #222629;
+    vertical-align: top;
+}
+
+.logbook-table td:nth-child(3) {
+    white-space: normal;
+    font-size: 16px;
+    color: #e0e0e0;
+    line-height: 1.5;
+    max-width: 450px;
+    line-height: 1.5;
+}
+
+.logbook-table textarea {
+    width: 100%;
+    min-height: 40px;
+    background: #ffffff;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 15px;
+    resize: vertical;
+    color: #1f2327;
+}
+
+.logbook-table textarea:focus {
+    outline: none;
+    border-color: #8ebebc;
+    box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.15);
+}
+
+.logbook-actions button {
+    padding: 6px 14px;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.logbook-actions button:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+.logbook-actions .approve {
+    background: #2ecc71;
+    color: #1a1d20;
+}
+
+.logbook-actions .reject {
+    background: #e74c3c;
+    color: #ffffff;
+}
+
+.logbook-status {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.logbook-status .pending {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid #ffc107;
+}
+
+.logbook-status .approved {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+}
+
+.logbook-status .rejected {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
+.logbook-table .empty-state {
+    font-size: 20px;
+    font-weight: 300;
+}
+
+/* =========================
    ATTENDANCE-PAGE
    ========================= */
 
@@ -298,25 +400,12 @@
     color: #222629;
 }
 
-.attendance-table th {
-    background: #222629;
-    color: #8ebebc;
-    text-transform: uppercase;
-    font-size: 16px;
-    font-weight: 400;
-    letter-spacing: 1px;
-    padding: 14px 15px;
-    text-align: left;
-    border-bottom: 2px solid #333;
-    white-space: nowrap;
-}
-
 .attendance-table td {
     padding: 14px 15px;
     color: #ffffff;
     font-size: 16px !important;
     border-bottom: 2px solid #222629;
-    white-space: nowrap;         /* ALWAYS one row */
+    white-space: nowrap;         
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -379,8 +468,7 @@
    EVALUATION-PAGE
    ========================= */
 
-.evaluation-table td,
-.evaluation-table th {
+.evaluation-table td {
     white-space: nowrap;
 }
 
@@ -421,16 +509,17 @@
    ========================= */
 
 .evaluation-form {
+    width: 95%;
     max-width: 900px;
     margin: 30px auto;
-    background: #2a2e32;
     padding: 35px 40px;
+    background: #2a2e32;
     border-radius: 12px;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 }
 
 .evaluation-form p {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
     color: #ffffff;
     margin-bottom: 14px;
@@ -438,8 +527,11 @@
 
 .evaluation-form label {
     display: inline-flex;
+    white-space: nowrap;
     align-items: center;
     gap: 6px;
+    position: relative;
+    padding-left: 30px;
     margin-right: 20px;
     margin-bottom: 8px;
     font-size: 13px;
@@ -453,7 +545,9 @@
 }
 
 .evaluation-form input[type="radio"] {
-    accent-color: #4fc3f7;
+    appearance: auto !important;
+    -webkit-appearance: radio !important;
+    -moz-appearance: radio !important;
     cursor: pointer;
 }
 
@@ -463,15 +557,19 @@
     margin: 25px 0;
 }
 
+.evaluation-form .interns-score {
+    min-height: 30px;
+}
+
 .evaluation-form textarea {
     width: 100%;
     min-height: 120px;
-    background: #1f2327;
+    background: #fff;
     border: 1px solid #333;
     border-radius: 8px;
     padding: 12px;
-    color: #ffffff;
-    font-size: 13px;
+    color: #1f2327;
+    font-size: 16px;
     resize: vertical;
 }
 

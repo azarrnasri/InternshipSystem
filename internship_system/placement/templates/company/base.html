@@ -20,7 +20,7 @@
 
 					<!-- Logo -->
 						<div id="logo">
-							<span class="image avatar48"><img src="images/avatar.jpg" alt="" /></span>
+							<span class="image avatar48"></span>
 							<h1 id="title">{{ request.user.username }}</h1>
 							<p>{{ request.user.role }}</p>
                             <a href="{% url 'logout' %}">Logout</a>
@@ -61,12 +61,19 @@
 									</ul>
 								</li>
                                 <li><a href="{% url 'evaluation_list' %}" id="contact-link"><span class="icon solid fa-check">Evaluation</span></a></li>
-                                <li><a href="{% url 'notifications' %}" id="contact-link"><span class="icon solid fa-bell">Notifications</span>{% if unread_count %}<span class="notification-badge">{{ unread_count }}</span>{% endif %}</a></li>
+                                <li>
+									<a href="{% url 'notifications' %}" id="contact-link">
+										<span class="icon solid fa-bell">
+											Notifications 
+											{% if unread_count > 0 %}
+       											<span class="badge">[ {{ unread_count }} ]</span>
+    										{% endif %}
+										</span>
+									</a>
+								</li>
 							</ul>
 						</nav>
-
 				</div>
-
 			</div>
 
 		<!-- Main -->

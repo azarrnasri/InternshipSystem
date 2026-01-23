@@ -26,7 +26,7 @@
             <tr>
                 <td>{{ placement.student.user.username }}</td>
                 <td>
-                    {% if evaluation_map|dictsort:placement.id %}
+                    {% if placement.is_evaluated %}
                         <span class="badge badge-accepted">Evaluated</span>
                     {% else %}
                         <span class="badge badge-pending">Not Evaluated</span>
@@ -36,11 +36,11 @@
                     {% if placement.status != "Completed" %}
                         <span class="action-disabled">Not accessible yet</span>
 
-                    {% elif evaluation_map|dictsort:placement.id %}
+                    {% elif placement.is_evaluated %}
                         <span class="completed">Completed</span>
 
                     {% else %}
-                        <a href="" class="btn-action btn-evaluate">
+                        <a href="{% url 'interns_evaluation' placement.id %}" class="btn-action btn-evaluate">
                             Evaluate
                         </a>
                     {% endif %}
