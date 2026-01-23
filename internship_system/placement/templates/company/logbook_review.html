@@ -7,63 +7,78 @@
 
 <h2 class="greeting">Logbook Review</h2>
 
-<div class="table-wrapper">
-    <table class="logbook-table">
-        <thead>
-            <tr>
-                <th>Student</th>
-                <th>Week</th>
-                <th>Content</th>
-                <th>Review</th>
-                <th>Action</th>
-                <th>Status</th>
-            </tr>
-        </thead>
+<div class="logbook-container">
+    <div class="logbook-header">      
+        <div class="filter-group">
+            <a href="?filter=recent" class="filter-btn {% if not show_all_log %}active{% endif %}">
+                Recent (90 Days)
+            </a>
+            <a href="?filter=all" class="filter-btn {% if show_all_log %}active{% endif %}">
+                View All
+            </a>
+        </div>
+    </div>
 
-        <tbody>
-            {% if logbooks %}
-                {% for logbook in logbooks %}
-                    <tr>
-                        <td>{{ logbook.student.user.username }}</td>
-                        <td>Week {{ logbook.week_no }}</td>
-                        <td>{{ logbook.content }}</td>
-                        <td>
-                            <form method="post" action="{% url 'review_logbook' logbook.id %}">
-                                {% csrf_token %}
-                                <textarea name="company_review" rows="3" placeholder="Enter your review here...">
-                                    {{ logbook.company_supervisor_notes|default:"" }}
-                                </textarea>
-                        </td>
+    <div class="table-wrapper">
+        <table class="logbook-table">
+            <thead>
+                <tr style="text-align: center;">
+                    <th>Student</th>
+                    <th>Week</th>
+                    <th>Content</th>
+                    <th>Review</th>
+                    <th>Action</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
 
-                        <td class="logbook-actions">
-                            {% if logbook.status == 'Pending' %}
-                                <button type="submit" name="action" value="approve" class="approve">
-                                    Approve
-                                </button>
-                                <button type="submit" name="action" value="reject" class="reject">
-                                    Reject
-                                </button>
-                            {% else %}
-                                <span>-</span>
-                            {% endif %}
-                            </form>
-                        </td>
-                        <td>
-                            {% if logbook.status == 'Pending' %}
-                                <span class="badge badge-pending">Pending</span>
-                            {% elif logbook.status == 'Approved' %}
-                                <span class="badge badge-accepted">Approved</span>
-                            {% elif logbook.status == 'Rejected' %}
-                                <span class="badge badge-rejected">Rejected</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            {% else %}
-                <tr><td colspan="6" class="empty-state">No logbooks to review.</td></tr>
-            {% endif %}
-        </tbody>
-    </table>
+            <tbody>
+                {% if logbooks %}
+                    {% for logbook in logbooks %}
+                        <tr>
+                            <td>{{ logbook.student.user.username }}</td>
+                            <td>Week {{ logbook.week_no }}</td>
+                            <td>{{ logbook.content }}</td>
+                            <td>
+                                <form method="post" action="{% url 'review_logbook' logbook.id %}">
+                                    {% csrf_token %}
+                                    <textarea
+                                        name="company_review"
+                                        rows="3"
+                                        placeholder="Enter your review here..."
+                                    >{{ logbook.company_supervisor_notes|default_if_none:"" }}</textarea>
+                            </td>
+
+                            <td class="logbook-actions">
+                                {% if logbook.status == 'Pending' %}
+                                    <button type="submit" name="action" value="approve" class="approve">
+                                        Approve
+                                    </button>
+                                    <button type="submit" name="action" value="reject" class="reject">
+                                        Reject
+                                    </button>
+                                {% else %}
+                                    <span>N/A</span>
+                                {% endif %}
+                                </form>
+                            </td>
+                            <td>
+                                {% if logbook.status == 'Pending' %}
+                                    <span class="badge badge-pending">Pending</span>
+                                {% elif logbook.status == 'Approved' %}
+                                    <span class="badge badge-accepted">Approved</span>
+                                {% elif logbook.status == 'Rejected' %}
+                                    <span class="badge badge-rejected">Rejected</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="6" class="empty-state">No logbooks to review.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 {% endblock %}

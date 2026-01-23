@@ -78,11 +78,17 @@
     font-style: italic;
 }
 
+#nav .badge {
+    display: inline;
+    padding-right: 3px;
+}
+
 /* =========================
    APPLICATION-PAGE, ATTENDANCE-PAGE, EVALUATION PAGE
    ========================= */
 
-.application-header {
+.application-header,
+.logbook-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -92,6 +98,7 @@
 .filter-group {
     background: #2d3238;
     padding: 5px;
+    margin: 0px 15px;
     border-radius: 10px;
     border: 1px solid #222629;
     display: flex;
@@ -181,7 +188,8 @@
 
 .application-table td form,
 .attendance-table td form,
-.evaluation-table td form {
+.evaluation-table td form,
+.logbook-table td form {
     background: none;
     margin: 0;
     padding: 0;
@@ -206,7 +214,6 @@
 .btn-action {
     padding: 6px 14px;
     border-radius: 5px;
-    font-size: 12px;
     font-weight: 600;
     border: none;
     cursor: pointer;
@@ -228,9 +235,8 @@
 }
 
 .badge {
-    padding: 4px 10px;
+    padding: 2px 10px;
     border-radius: 4px;
-    font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
 }
@@ -308,10 +314,12 @@
 }
 
 .logbook-table textarea {
-    width: 100%;
+    display: inline-flex;
+    width: 90%;
     min-height: 40px;
     background: #ffffff;
     border: 1px solid #333;
+    box-sizing: border-box;
     border-radius: 6px;
     padding: 10px;
     font-size: 15px;
@@ -325,10 +333,16 @@
     box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.15);
 }
 
+td.logbook-actions {
+    font-size: 19px !important;
+    font-weight: 800;
+}
+
 .logbook-actions button {
     padding: 6px 14px;
-    gap: 10px;
-    font-size: 12px;
+    margin: 0 3px;
+    gap: 20px;
+    font-size: 13px;
     font-weight: 600;
     border-radius: 5px;
     border: none;

@@ -10,10 +10,10 @@
 <div class="application-page-container">
     <div class="application-header">      
         <div class="filter-group">
-            <a href="?filter=recent" class="filter-btn {% if not show_all %}active{% endif %}">
+            <a href="?filter=recent" class="filter-btn {% if not show_all_app %}active{% endif %}">
                 Recent (90 Days)
             </a>
-            <a href="?filter=all" class="filter-btn {% if show_all %}active{% endif %}">
+            <a href="?filter=all" class="filter-btn {% if show_all_app %}active{% endif %}">
                 View All
             </a>
         </div>
@@ -55,7 +55,7 @@
                             <span class="no-doc">-</span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td style="text-align: center;">
                         {% if app.handled_by %}
                             {% if app.handled_by == request.user.companysupervisor %}
                                 <span class="badge" style="background: #005b96;">You</span>

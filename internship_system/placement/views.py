@@ -1189,18 +1189,18 @@ def submit_logbook(request, week_no):
             status='Pending'
         )
 
-    # Notify Supervisors
-    if placement.company_supervisor:
-        Notification.objects.create(
-            user=placement.company_supervisor.user,
-            message=f"{student.user.username} submitted logbook for Week {week_no}."
-        )
+        # Notify Supervisors
+        if placement.company_supervisor:
+            Notification.objects.create(
+                user=placement.company_supervisor.user,
+                message=f"{student.user.username} submitted logbook for Week {week_no}."
+            )
 
-    if student.academic_supervisor:
-        Notification.objects.create(
-            user=student.academic_supervisor.user,
-            message=f"{student.user.username} submitted logbook for Week {week_no}."
-        )
+        if student.academic_supervisor:
+            Notification.objects.create(
+                user=student.academic_supervisor.user,
+                message=f"{student.user.username} submitted logbook for Week {week_no}."
+            )
 
         messages.success(request, "Logbook submitted successfully.")
         return redirect('logbook_list')
@@ -1251,6 +1251,7 @@ def edit_logbook(request, id):
 @role_required(['company'])
 def company_logbook_review(request):
     supervisor = get_object_or_404(CompanySupervisor, user=request.user)
+    show_all_log = request.GET.get('filter') == 'all'
 
     placements = InternshipPlacement.objects.filter(
         company_supervisor=supervisor,
@@ -1261,8 +1262,13 @@ def company_logbook_review(request):
         application__internship__in=[p.internship for p in placements]
     )
 
+    if not show_all_log:
+        three_months_ago = timezone.now() - timedelta(days=90)
+        logbooks = logbooks.filter(created_at__gte=three_months_ago)
+
     return render(request, 'company/logbook_review.html', {
-        'logbooks': logbooks
+        'logbooks': logbooks,
+        'show_all_log': show_all_log
     })
 
 @login_required
