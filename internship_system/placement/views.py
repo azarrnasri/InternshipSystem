@@ -295,12 +295,17 @@ def intern_evaluation_list(request):
         company_supervisor = company
     ).select_related('student')
 
+    today = timezone.now().date()
     for placement in placements:
         placement.is_evaluated = PerformanceEvaluation.objects.filter(
             application__student = placement.student,
             company_supervisor = company,
             company_supervisor_submitted_at__isnull=False
         ).exists()
+
+        # Allow evaluation if active and within 1 week of end date
+        days_left = (placement.end_date - today).days
+        placement.can_evaluate = placement.status == 'Active' and days_left <= 7
 
     context = {
         'placements': placements,
