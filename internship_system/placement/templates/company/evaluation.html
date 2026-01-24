@@ -33,7 +33,7 @@
                     {% endif %}
                 </td>
                 <td>
-                    {% if placement.status != "Completed" %}
+                    {% if not placement.can_evaluate %}
                         <span class="action-disabled">Not accessible yet</span>
 
                     {% elif placement.is_evaluated %}
