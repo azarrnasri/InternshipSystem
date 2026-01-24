@@ -1,3 +1,7 @@
+
+{% extends "admin/admin_base.html" %}
+
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,7 +41,7 @@
         }
 
         h1 {
-            font-size: 28px;
+            font-size: 40px;
             margin-bottom: 20px;
             font-weight: 300;
             color: #666;
@@ -190,16 +194,14 @@
         }
     </style>
 </head>
+
+
 <body>
 
 <div class="container">
     <h1>User Management</h1>
 
     <div class="top-actions" style="justify-content: space-between;">
-    <a href="{% url 'admin' %}" class="btn btn-back">
-        ← Back
-    </a>
-
     <a href="{% url 'admin_add_user' %}" class="btn btn-primary">
         ✚ Add User
     </a>
@@ -328,9 +330,14 @@
             {% endfor %}
             </tbody>
         </table>
+
+  
+
     </div>
 
 </div>
+
+{% endblock %}
 
 </body>
 </html>

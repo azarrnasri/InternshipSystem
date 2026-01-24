@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Manage Attendance</title>
+
+  <style>
+    @import url("fontawesome-all.min.css");
+    @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,400,600");
+
+    :root {
+        --primary: #2563eb;
+        --danger: #dc2626;
+        --bg: #f5f5f5;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+    }
+
+    * {
+        box-sizing: border-box;
+        font-family: 'Source Sans Pro', sans-serif;
+    }
+
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+    }
+
+    /* === layout === */
+    .page-wrapper {
+        padding: 40px;
+        max-width: 1100px;
+        margin: auto;
+    }
+
+    /* === cards === */
+    .card {
+        background: var(--card);
+        border-radius: 14px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        padding: 28px;
+        margin-bottom: 24px;
+    }
+
+    /* === typography === */
+    h1 {
+        font-size: 40px;
+        font-weight: 300;
+        color: #666;
+        margin: 0 0 24px;
+    }
+
+    h2 {
+        font-size: 22px;
+        font-weight: 300;
+        color: #666;
+        margin-bottom: 16px;
+    }
+
+    label {
+        font-weight: 300;
+        color: #666;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    /* === inputs === */
+    select,
+    input[type="date"],
+    input[type="time"] {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        font-size: 14px;
+        margin-bottom: 14px;
+    }
+
+    /* === buttons === */
+    .btn {
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-danger {
+        background: var(--danger);
+        color: white;
+    }
+
+    .btn-back {
+        background: #e5e7eb;
+        color: #111827;
+        display: inline-block;
+        margin-bottom: 24px;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+
+    /* === table === */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead th {
+        background: #f9fafb;
+        font-size: 13px;
+        color: var(--muted);
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+
+    tbody td {
+        padding: 12px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    .empty {
+        padding: 16px;
+        color: var(--muted);
+        font-style: italic;
+    }
+
+    /* === responsive === */
+    @media (max-width: 768px) {
+        table, thead, tbody, th, td, tr {
+            display: block;
+        }
+
+        thead {
+            display: none;
+        }
+
+        tbody tr {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        tbody td {
+            border: none;
+            padding: 6px 0;
+        }
+
+        tbody td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+        }
+    }
+    </style>
+
+</head>
+
+<body>
+<div class="page-wrapper">
+
+    <a href="{% url 'admin_attendance_list' %}" class="btn btn-back">← Back</a>
+
+    <h1>Manage Attendance</h1>
+
+    <div class="card">
+        <label><strong>Select Student</strong></label>
+
+        <form method="get">
+            <select name="placement" onchange="this.form.submit()">
+                <option value="">— Select Student —</option>
+
+                {% for p in placements %}
+                    <option value="{{ p.id }}"
+                        {% if selected_placement and selected_placement.id == p.id %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ p.student.user.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    {% if selected_placement %}
+    <div class="card">
+        <h2>
+            Attendance — {{ selected_placement.student.user.username }}
+        </h2>
+
+        {% if is_locked %}
+            <p class="empty">
+                🔒 This placement is completed. Attendance is read-only.
+            </p>
+        {% endif %}
+
+        <table>
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for att in attendance_records %}
+                <tr>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="attendance_id" value="{{ att.id }}">
+
+                        <td data-label="Date">
+                            {{ att.date }}
+                        </td>
+
+                        <td data-label="Check In">
+                            <input type="time"
+                                    name="check_in"
+                                    value="{{ att.check_in|time:'H:i' }}"
+                                   {% if is_locked %}disabled{% endif %}>
+                        </td>
+
+                        <td data-label="Check Out">
+                            <input type="time"
+                                    name="check_out"
+                                    value="{{ att.check_out|time:'H:i' }}"
+                                   {% if is_locked %}disabled{% endif %}>
+                        </td>
+
+                        <td data-label="Actions">
+                            {% if not is_locked %}
+                                <button type="submit"
+                                        name="edit_attendance"
+                                        class="btn btn-edit">
+                                    Save
+                                </button>
+
+                                <button type="submit"
+                                        name="delete_attendance"
+                                        class="btn btn-danger"
+                                        onclick="return confirm('Delete this record?')">
+                                    Delete
+                                </button>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </form>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="empty">
+                        No attendance records found.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if not is_locked %}
+        <div class="card">
+            <h2>Add Attendance</h2>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <input type="hidden" name="add_attendance">
+
+                <label>Date</label>
+                <input type="date" name="date" required>
+
+                <label>Check In</label>
+                <input type="time" name="check_in" required>
+
+                <label>Check Out</label>
+                <input type="time" name="check_out">
+
+                <br><br>
+
+                <button type="submit" class="btn btn-edit">
+                    Add Attendance
+                </button>
+            </form>
+        </div>
+    {% endif %}
+{% endif %}
+
+
+</div>
+</body>
+</html>
+

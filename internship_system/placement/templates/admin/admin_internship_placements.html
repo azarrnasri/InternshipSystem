@@ -1,4 +1,3 @@
-
 {% extends "admin/admin_base.html" %}
 
 {% block content %}
@@ -7,7 +6,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - Internship Management</title>
+    <title>Admin - Internship Placement Management</title>
 
     <style>
         @import url("fontawesome-all.min.css");
@@ -130,6 +129,7 @@
             padding: 12px;
             font-size: 14px;
             border-bottom: 1px solid var(--border);
+            vertical-align: top;
         }
 
         tbody tr:hover {
@@ -145,6 +145,21 @@
             padding: 16px;
             color: var(--muted);
             font-style: italic;
+        }
+
+        .student-list {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .student-list li {
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .student-list .status {
+            color: var(--muted);
+            font-size: 12px;
         }
 
         @media (max-width: 768px) {
@@ -178,68 +193,103 @@
         }
     </style>
 </head>
+
 <body>
 
 <div class="container">
-    <h1>Internship Management</h1>
 
-    <div class="top-actions">
-        <a href="add" class="btn btn-back">✚ Add Internship</a>
-    </div>
+    <h1>Internship Placement Management</h1>
 
-    {% regroup internships by company as company_list %}
+    {% regroup placements by internship.company as company_list %}
 
-    {% for group in company_list %}
+    {% for company in company_list %}
         <div class="card">
-            <h2>{{ group.grouper.company_name }}</h2>
+            <h2>{{ company.grouper.company_name }}</h2>
+
+            {% regroup company.list by internship as internship_list %}
 
             <table>
                 <thead>
                 <tr>
-                    <th>Title</th>
+                    <th>Students</th>
+                    <th>Internship</th>
                     <th>Department</th>
+                    <th>Supervisor</th>
+                    <th>Period</th>
                     <th>Status</th>
-                    <th>Location</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
+
                 <tbody>
-                {% for internship in group.list %}
+                {% for internship in internship_list %}
                     <tr>
-                        <td data-label="Title">{{ internship.title }}</td>
-                        <td data-label="Department">{{ internship.department.name }}</td>
-                        <td data-label="Status">{{ internship.status }}</td>
-                        <td data-label="Location">{{ internship.location }}</td>
+                        <td data-label="Students">
+                            <ul class="student-list">
+                                {% for placement in internship.list %}
+                                    <li>
+                                        {{ placement.student.user.username }}
+                                        <span class="status">
+                                            ({{ placement.status }})
+                                        </span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+
+                        <td data-label="Internship">
+                            {{ internship.grouper.title }}
+                        </td>
+
+                        <td data-label="Department">
+                            {{ internship.grouper.department.name|default:"—" }}
+                        </td>
+
+                        <td data-label="Supervisor">
+                            {{ internship.list.0.company_supervisor.user.username }}
+                        </td>
+
+                        <td data-label="Period">
+                            {{ internship.list.0.start_date }} →
+                            {{ internship.list.0.end_date }}
+                        </td>
+
+                        <td data-label="Status">
+                            {{ internship.list.0.status }}
+                        </td>
+
                         <td data-label="Actions">
                             <div class="actions">
-                                <a href="{% url 'admin_edit_internship' internship.id %}" class="btn btn-edit">Edit</a>
-                                <form method="post"
-                                      action=""
-                                      onsubmit="return confirm('Are you sure?');">
-                                    {% csrf_token %}
-                                    <a href="{% url 'admin_delete_internship' internship.id %}" 
-                                    class="btn btn-danger"
-                                    onclick="return confirm('Are you sure you want to delete this internship?');">
-                                    Delete
-                                    </a>
+                                <a href="{% url 'admin_manage_placement' internship.list.0.id %}"
+                                class="btn btn-edit">
+                                    Manage
+                                </a>
 
-
-                                </form>
                             </div>
                         </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="5" class="empty">No internships found.</td>
+                        <td colspan="7" class="empty">
+                            No internship placements found.
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
+    {% empty %}
+        <div class="card">
+            <div class="empty">No internship placements found.</div>
+        </div>
     {% endfor %}
+
 </div>
 
-{% endblock %}
 
 </body>
 </html>
+
+{% endblock %}
+
+

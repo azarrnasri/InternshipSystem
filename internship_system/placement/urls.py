@@ -71,6 +71,25 @@ urlpatterns = [
     path('manager/internships/delete/<int:internship_id>/', views.admin_delete_internship, name='admin_delete_internship'),
     # AJAX endpoint for departments
     path('manager/departments/by-company/<int:company_id>/', views.departments_by_company, name='departments_by_company'),
+    # Internship Placements (Admin)
+    path('manager/applications/', views.admin_applications_list, name='admin_applications_list'),
+    path('manager/applications/<int:application_id>/', views.admin_application_detail, name='admin_application_detail'),
+    path('manager/applications/<int:application_id>/delete/', views.admin_delete_application, name='admin_delete_application'),
+    path('manager/applications/<int:application_id>/replace-supervisor/', views.admin_replace_supervisor, name='admin_replace_supervisor'),
+
+    path('manager/placements/', views.admin_internship_placements_list, name='admin_internship_placements_list'),
+    path('manager/placements/manage/<int:placement_id>/', views.admin_manage_placement, name='admin_manage_placement'),
+    path('manager/attendance/', views.admin_attendance_list, name='admin_attendance_list'),
+    path('manager/attendance/manage/<int:internship_id>/', views.admin_manage_attendance, name='admin_attendance_manage'),
+    path('manager/logbooks/', views.admin_logbooks_list, name='admin_logbooks_list'),
+    path('manager/logbooks/manage/', views.admin_logbooks_manage, name='admin_logbooks_manage'),
+
+
+
+
+
+
+
     
     path('academic/dashboard/', views.academic_dashboard, name='academic_dashboard'),
     # Add this redirect

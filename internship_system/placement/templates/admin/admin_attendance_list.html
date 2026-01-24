@@ -7,7 +7,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - Company Management</title>
+    <title>Admin - Attendance Management</title>
 
     <style>
         @import url("fontawesome-all.min.css");
@@ -42,7 +42,14 @@
 
         h1 {
             font-size: 40px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
+            font-weight: 300;
+            color: #666;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
             font-weight: 300;
             color: #666;
         }
@@ -50,7 +57,7 @@
         .top-actions {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .btn {
@@ -72,20 +79,11 @@
 
         .btn-back {
             background: #7eaeac;
-            color: #ffffff;
+            color: #fff;
         }
 
         .btn-back:hover {
             background: #9ececc;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: #fff;
-        }
-
-        .btn-primary:hover {
-            background: #9fb6f0;
         }
 
         .btn-edit {
@@ -109,45 +107,38 @@
         .card {
             background: var(--card);
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 5px 20px 20px 20px;
+            margin-bottom: 24px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
         }
 
         thead th {
             background: #f9fafb;
-            text-align: left;
             font-size: 13px;
             color: var(--muted);
             padding: 12px;
+            text-align: left;
             border-bottom: 1px solid var(--border);
         }
 
         tbody td {
             padding: 12px;
-            border-bottom: 1px solid var(--border);
             font-size: 14px;
-            vertical-align: top;
+            border-bottom: 1px solid var(--border);
         }
 
         tbody tr:hover {
             background: #f9fafb;
         }
 
-        ul {
-            margin: 0;
-            padding-left: 18px;
-        }
-
         .actions {
             display: flex;
             gap: 8px;
-            min-width: 160px;
         }
 
         .empty {
@@ -166,10 +157,10 @@
             }
 
             tbody tr {
-                margin-bottom: 16px;
                 border: 1px solid var(--border);
                 border-radius: 8px;
                 padding: 12px;
+                margin-bottom: 16px;
             }
 
             tbody td {
@@ -187,83 +178,99 @@
         }
     </style>
 </head>
-
 <body>
 
 <div class="container">
 
-    <h1>Company Management</h1>
+    <h1>Attendance Management</h1>
 
-    <div class="top-actions">
-        <a href="{% url 'admin_add_company' %}" class="btn btn-primary">
-            ✚ Add Company
-        </a>
-    </div>
+    {% regroup placements by internship.company as company_list %}
 
-    <div class="card">
-        <table>
-            <thead>
+    {% for company in company_list %}
+        <div class="card">
+            <h2>{{ company.grouper.company_name }}</h2>
+
+            {% regroup company.list by internship as internship_list %}
+
+            <table>
+                <thead>
                 <tr>
-                    <th>Company Name</th>
-                    <th>Address</th>
-                    <th>Departments</th>
+                    <th>Students</th>
+                    <th>Internship</th>
+                    <th>Department</th>
+                    <th>Supervisor</th>
+                    <th>Period</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
-            </thead>
+                </thead>
 
-            <tbody>
-                {% for company in companies %}
-                <tr>
-                    <td data-label="Company Name">{{ company.company_name }}</td>
-
-                    <td data-label="Address">{{ company.address }}</td>
-
-                    <td data-label="Departments">
-                        {% if company.departments.all %}
-                            <ul>
-                                {% for dept in company.departments.all %}
-                                    <li>{{ dept.name }}</li>
-                                {% empty %}
-                                    <em>No departments</em>
+                <tbody>
+                {% for internship in internship_list %}
+                    <tr>
+                        <td data-label="Students">
+                            <ul class="student-list">
+                                {% for placement in internship.list %}
+                                    <li>
+                                        {{ placement.student.user.username }}
+                                        <span class="status">
+                                            ({{ placement.status }})
+                                        </span>
+                                    </li>
                                 {% endfor %}
                             </ul>
-                        {% else %}
-                            <em>No departments</em>
-                        {% endif %}
-                    </td>
+                        </td>
 
-                    <td data-label="Actions">
-                        <div class="actions">
-                            <a href="{% url 'admin_edit_company' company.id %}" class="btn btn-edit">
-                                Edit
-                            </a>
+                        <td data-label="Internship">
+                            {{ internship.grouper.title }}
+                        </td>
 
-                            <form method="post"
-                                  action="{% url 'admin_delete_company' company.id %}"
-                                  onsubmit="return confirm('Delete this company?');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger">
-                                    Delete
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
+                        <td data-label="Department">
+                            {{ internship.grouper.department.name|default:"—" }}
+                        </td>
+
+                        <td data-label="Supervisor">
+                            {{ internship.list.0.company_supervisor.user.username }}
+                        </td>
+
+                        <td data-label="Period">
+                            {{ internship.list.0.start_date }} →
+                            {{ internship.list.0.end_date }}
+                        </td>
+
+                        <td data-label="Status">
+                            {{ internship.list.0.status }}
+                        </td>
+
+                        <td data-label="Actions">
+                            <div class="actions">
+                                <a href="{% url 'admin_attendance_manage' internship.grouper.id %}"
+                                class="btn btn-edit">
+                                    Manage
+                                </a>
+
+                            </div>
+                        </td>
+                    </tr>
                 {% empty %}
-                <tr>
-                    <td colspan="4" class="empty">No companies found.</td>
-                </tr>
+                    <tr>
+                        <td colspan="7" class="empty">
+                            No internship placements found.
+                        </td>
+                    </tr>
                 {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                </tbody>
+            </table>
+        </div>
+    {% empty %}
+        <div class="card">
+            <div class="empty">No internship placements found.</div>
+        </div>
+    {% endfor %}
 
 </div>
-
 
 {% endblock %}
 
 </body>
 </html>
-
-
