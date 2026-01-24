@@ -431,7 +431,80 @@ def submit_academic_evaluation(request, eval_id):
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin(request):
-    return render(request, 'admin/admin.html')
+    # Summary metrics
+    total_users = User.objects.count()
+    students_count = User.objects.filter(role='student').count()
+    companies_count = User.objects.filter(role='company').count()
+    academics_count = User.objects.filter(role='academic').count()
+    admins_count = User.objects.filter(role='admin').count()
+    
+    total_internships = Internship.objects.count()
+    open_internships = Internship.objects.filter(status='Open').count()
+    closed_internships = Internship.objects.filter(status='Closed').count()
+    
+    total_applications = InternshipApplication.objects.count()
+    pending_applications = InternshipApplication.objects.filter(status='Pending').count()
+    accepted_applications = InternshipApplication.objects.filter(status='Accepted').count()
+    rejected_applications = InternshipApplication.objects.filter(status='Rejected').count()
+    offered_applications = InternshipApplication.objects.filter(status='Offered').count()
+    
+    active_placements = InternshipPlacement.objects.filter(status='Active').count()
+    completed_placements = InternshipPlacement.objects.filter(status='Completed').count()
+    
+    total_logbooks = Logbook.objects.count()
+    pending_logbooks = Logbook.objects.filter(status='Pending').count()
+    approved_logbooks = Logbook.objects.filter(status='Approved').count()
+    rejected_logbooks = Logbook.objects.filter(status='Rejected').count()
+    
+    total_companies = Company.objects.count()
+    total_departments = Department.objects.count()
+    
+    total_attendance = Attendance.objects.count()
+    today_attendance = Attendance.objects.filter(date=timezone.now().date()).count()
+    
+    pending_evaluations = PerformanceEvaluation.objects.filter(
+        Q(company_supervisor_submitted_at__isnull=True) | Q(academic_supervisor_submitted_at__isnull=True)
+    ).count()
+    
+    # Recent notifications for admin
+    recent_notifications = Notification.objects.filter(
+        user=request.user
+    ).order_by('-created_at')[:10]  # Last 10 notifications
+    
+    unread_notifications_count = Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).count()
+    
+    context = {
+        'total_users': total_users,
+        'students_count': students_count,
+        'companies_count': companies_count,
+        'academics_count': academics_count,
+        'admins_count': admins_count,
+        'total_internships': total_internships,
+        'open_internships': open_internships,
+        'closed_internships': closed_internships,
+        'total_applications': total_applications,
+        'pending_applications': pending_applications,
+        'accepted_applications': accepted_applications,
+        'rejected_applications': rejected_applications,
+        'offered_applications': offered_applications,
+        'active_placements': active_placements,
+        'completed_placements': completed_placements,
+        'total_logbooks': total_logbooks,
+        'pending_logbooks': pending_logbooks,
+        'approved_logbooks': approved_logbooks,
+        'rejected_logbooks': rejected_logbooks,
+        'total_companies': total_companies,
+        'total_departments': total_departments,
+        'total_attendance': total_attendance,
+        'today_attendance': today_attendance,
+        'pending_evaluations': pending_evaluations,
+        'recent_notifications': recent_notifications,
+        'unread_notifications_count': unread_notifications_count,
+    }
+    return render(request, 'admin/admin.html', context)
 
 @login_required
 @role_required(allowed_roles=['admin'])
@@ -1837,6 +1910,27 @@ def student_attendance_summary(request):
     }
 
     return render(request, 'student/attendance.html', context)
+
+
+@login_required
+def notifications(request):
+    user_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Mark all as read when viewing
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    
+    context = {
+        'notifications': user_notifications,
+    }
+    return render(request, 'notifications/list.html', context)
+
+
+@login_required
+def mark_notification_read(request, pk):
+    notification = get_object_or_404(Notification, pk=pk, user=request.user)
+    notification.is_read = True
+    notification.save()
+    return redirect('notifications')
 
 
 
