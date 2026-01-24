@@ -1,0 +1,239 @@
+{% load static %}
+
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>{% block title %}Dashboard{% endblock %}</title>
+		<style>
+		
+
+		@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,400,600");
+
+/* =====================
+   BASIC RESET / BASE
+   ===================== */
+
+html {
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
+body {
+    background: #fff;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 19pt;
+    font-weight: 300;
+    color: #888;
+}
+
+/* Disable animations during preload */
+body.is-preload *,
+body.is-preload *::before,
+body.is-preload *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* =====================
+   TYPOGRAPHY
+   ===================== */
+
+h1 {
+    font-weight: 300;
+    color: #666;
+    line-height: 1.5em;
+}
+
+p {
+    margin: 0.5em 0 0 0;
+}
+
+/* =====================
+   LINKS
+   ===================== */
+
+a {
+    text-decoration: none;
+    color: inherit;
+    border-bottom: dotted 1px rgba(128, 128, 128, 0.5);
+    transition: color 0.35s ease-in-out, border-bottom-color 0.35s ease-in-out;
+}
+
+a:hover {
+    color: white;
+    border-bottom-color: transparent;
+}
+
+/* =====================
+   ICONS (Font Awesome)
+   ===================== */
+
+.icon {
+    text-decoration: none;
+    text-align: left;
+}
+
+.icon::before {
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 400;
+    display: inline-block;
+    line-height: 1;
+}
+
+.icon.solid::before {
+    font-weight: 900;
+}
+
+/* =====================
+   HEADER (SIDEBAR)
+   ===================== */
+
+#header {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #222629;
+    box-shadow: inset -0.25em 0 0.25em rgba(0, 0, 0, 0.1);
+    color: #fff;
+    height: 100%;
+    width: 300px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow-y: auto;
+    text-align: right;
+}
+
+#header .top {
+    flex-grow: 1;
+}
+
+/* =====================
+   LOGO / USER INFO
+   ===================== */
+
+#logo {
+    margin: 1em 1.5em 1em 1.5em;
+    cursor: default;
+}
+
+
+#logo h1 {
+    color: #fff;
+    font-size: 1em;
+    font-weight: 600;
+    line-height: 1em;
+}
+
+#logo p {
+    font-size: 0.6em;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+
+
+/* =====================
+   NAVIGATION
+   ===================== */
+
+#nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: right;
+}
+
+#nav ul li {
+    padding: 0;
+}
+
+#nav ul li a {
+    display: block;
+    padding: 0.5em 1.5em;
+    color: rgba(255, 255, 255, 0.5);
+    border: none;
+}
+
+#nav ul li a span {
+    display: block;
+    font-size: 0.8em;
+    position: relative;
+}
+
+#nav ul li a.active {
+    background: rgba(0, 0, 0, 0.15);
+    color: #fff;
+}
+
+#nav ul li a.active span::before {
+    color: #e27689;
+}
+
+/* =====================
+   MAIN CONTENT
+   ===================== */
+
+#main {
+    margin-left: 300px;
+}
+
+
+		</style>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <!-- CSS -->
+		<!-- Font Awesome Free -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+	</head>
+
+	<body class="is-preload">
+
+		<!-- Header -->
+			<div id="header">
+
+				<div class="top">
+
+					<!-- Logo -->
+						<div id="logo">
+							<div class="avatar"><i class="fa-solid fa-user-graduate"></i></div>
+							<h1 id="title">{{ request.user.username }}</h1>
+							<p>{{ request.user.role }}</p>
+                            <a href="{% url 'logout' %}">Logout</a>
+						</div>
+
+					<!-- Nav -->
+						<nav id="nav">
+							<ul>
+								<li><a href="{% url 'student_dashboard' %}"id="dashboard-link"><span class="icon solid fa-home">  Dashboard</span></a></li>
+								<li><a href="{% url 'admin_company_list' %}"id="contact-link"><span class="icon solid fa-check">  Company Information</span></a></li>
+								<li><a href="{% url 'admin_user_list' %}"id="contact-link"><span class="icon solid fa-address-book">  User List</span></a></li>
+                                <li><a href="{% url 'admin_internships_list' %}"id="about-link"><span class="icon solid fa-briefcase">  Internships</span></a></li>
+                                <li><a href="{% url 'admin_applications_list' %}" id="contact-link"><span class="icon solid fa-calendar">  Applications</span></a></li>
+                                <li><a href="{% url 'admin_internship_placements_list' %}" id="contact-link"><span class="icon solid fa-calendar">  Placements</span></a></li>
+                                <li><a href="{% url 'admin_attendance_list' %}" id="contact-link"><span class="icon solid fa-calendar">  Attendance Module</span></a></li>
+                                <li><a href="{% url 'admin_logbooks_manage' %}" id="contact-link"><span class="icon solid fa-calendar">  Logbooks Module</span></a></li>
+                                <li><a href="{% url 'admin' %}" id="contact-link"><span class="icon solid fa-calendar">  Evaluation Module</span></a></li>
+								<li><a href="{% url 'notifications' %}"><span class="icon solid fa-bell">-</span></a></li>
+							</ul>
+						</nav>
+
+				</div>
+
+			</div>
+
+		<!-- Main -->
+			<div id="main">
+				{% block content %}{% endblock %}
+			</div>
+			
+		<!-- Scripts -->
+		 <script src="{% static 'placement/assets/js/jquery.min.js' %}"></script>
+		 <script src="{% static 'placement/assets/js/main.js' %}"></script>
+		
+		</body>
+		</html>

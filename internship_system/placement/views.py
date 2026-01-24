@@ -1,14 +1,14 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db import transaction
+from django.db import transaction, models
 from django.views.decorators.http import require_POST
 from django.db.models import Q, Prefetch, Exists, OuterRef, Count
 from django.utils import timezone
 from .decorators import role_required
-from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm
+from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm, InternshipPlacementForm
 from django.utils.timezone import now, localtime
 from datetime import timedelta, date, datetime
 from django.http import JsonResponse, HttpResponseForbidden
@@ -33,6 +33,12 @@ def departments_by_company(request, company_id):
     """Return JSON list of departments for a given company."""
     departments = Department.objects.filter(company_id=company_id).values('id', 'name')
     return JsonResponse(list(departments), safe=False)
+
+def application_has_placement(application):
+    return InternshipPlacement.objects.filter(
+        student=application.student,
+        internship=application.internship
+    ).exists()
 
 # --- Login View ---
 def login_view(request):
@@ -639,6 +645,442 @@ def admin_internships_list(request):
             'internships': internships
         }
     )
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_applications_list(request):
+
+    applications = (
+        InternshipApplication.objects
+        .select_related(
+            'student__user',
+            'internship',
+            'internship__company',
+            'internship__department',
+            'handled_by__user',
+        )
+        .order_by(
+            'internship__company__company_name',  # 1️⃣ group by company
+            'internship__id',                     # 2️⃣ group by internship
+            'created_at',                          # 3️⃣ stable order inside group
+        )
+    )
+
+    return render(request, 'admin/admin_applications_list.html', {
+        'applications': applications
+    })
+
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_application_detail(request, application_id):
+
+    # 🔹 STEP 1: handle student switch (dropdown)
+    switch_id = request.GET.get('application_switch')
+    if switch_id:
+        return redirect(
+            'admin_application_detail',
+            application_id=switch_id
+        )
+
+    # 🔹 STEP 2: load selected application
+    application = get_object_or_404(InternshipApplication, id=application_id)
+    has_placement = application_has_placement(application)
+
+    # 🔹 STEP 3: all applications under the SAME internship
+    related_applications = InternshipApplication.objects.filter(
+        internship=application.internship
+    ).select_related('student__user')
+
+    # 🔹 STEP 4: supervisors filtered by company + department
+    supervisors = CompanySupervisor.objects.filter(
+        company=application.internship.company,
+        department=application.internship.department
+    )
+
+    return render(request, 'admin/admin_application_detail.html', {
+        'application': application,
+        'related_applications': related_applications,
+        'supervisors': supervisors,
+        'has_placement': has_placement
+    })
+
+
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_delete_application(request, application_id):
+    if request.user.role != 'admin':
+        return redirect('dashboard')
+
+    application = get_object_or_404(InternshipApplication, id=application_id)
+
+    if application_has_placement(application):
+        messages.error(request, "Cannot delete application after placement is created.")
+        return redirect('admin_application_detail', application_id=application.id)
+
+    application.delete()
+    messages.success(request, "Application removed successfully.")
+    return redirect('admin_applications_list')
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_replace_supervisor(request, application_id):
+    application = get_object_or_404(InternshipApplication, id=application_id)
+    internship = application.internship
+
+    # 🚫 Block if ANY placement exists for this internship
+    if InternshipPlacement.objects.filter(internship=internship).exists():
+        messages.error(
+            request,
+            "Cannot change supervisor. One or more placements already exist."
+        )
+        return redirect('admin_application_detail', application_id=application.id)
+
+    if request.method == 'POST':
+        supervisor = get_object_or_404(
+            CompanySupervisor,
+            id=request.POST.get('company_supervisor'),
+            company=internship.company,
+            department=internship.department
+        )
+
+        # 🔁 BULK UPDATE (this is the magic)
+        InternshipApplication.objects.filter(
+            internship=internship
+        ).update(
+            handled_by=supervisor,
+            updated_at=timezone.now()
+        )
+
+        messages.success(
+            request,
+            "Company supervisor updated for all students in this internship."
+        )
+
+    return redirect('admin_application_detail', application_id=application.id)
+
+
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_internship_placements_list(request):
+    placements = (
+        InternshipPlacement.objects
+        .select_related(
+            'student__user',
+            'internship__company',
+            'internship__department',
+            'company_supervisor__user',
+        )
+        .order_by('internship__company__company_name')
+    )
+
+    return render(
+        request,
+        'admin/admin_internship_placements.html',
+        {
+            'placements': placements
+        }
+    )
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_manage_placement(request, placement_id):
+
+    # 🔹 Placement switch (dropdown)
+    switch_id = request.GET.get('placement_switch')
+    if switch_id:
+        return redirect(
+            'admin_manage_placement',
+            placement_id=switch_id
+        )
+
+    placement = get_object_or_404(
+        InternshipPlacement.objects.select_related(
+            'student__user',
+            'internship__company',
+            'internship__department',
+            'company_supervisor__user',
+        ),
+        id=placement_id
+    )
+
+    placements_same_internship = InternshipPlacement.objects.filter(
+        internship=placement.internship
+    ).select_related('student__user')
+
+    # ✅ ALWAYS initialize form
+    form = InternshipPlacementForm(instance=placement)
+
+    if request.method == 'POST':
+
+        if "delete_placement" in request.POST:
+            placement.delete()
+            messages.success(request, "Placement deleted.")
+            return redirect('admin_internship_placements_list')
+
+        if "remove_student" in request.POST:
+            remove_id = request.POST.get("remove_student_id")
+            placement_to_remove = get_object_or_404(
+                InternshipPlacement, id=remove_id
+            )
+            placement_to_remove.delete()
+            messages.success(request, "Student removed from placement.")
+            return redirect('admin_manage_placement', placement_id=placement.id)
+
+        if "save_changes" in request.POST:
+            form = InternshipPlacementForm(request.POST, instance=placement)
+
+            if form.is_valid():
+                cleaned = form.cleaned_data
+
+                InternshipPlacement.objects.filter(
+                    internship=placement.internship
+                ).update(
+                    company_supervisor=cleaned['company_supervisor'],
+                    start_date=cleaned['start_date'],
+                    end_date=cleaned['end_date'],
+                    status=cleaned['status'],
+                    updated_at=timezone.now()
+                )
+
+                messages.success(
+                    request,
+                    "Placement updated for all students in this internship."
+                )
+                return redirect('admin_internship_placements_list')
+            else:
+                messages.error(request, "Please fix the errors below.")
+
+    return render(
+        request,
+        'admin/admin_placement_manage.html',
+        {
+            'form': form,
+            'placement': placement,
+            'placements_same_internship': placements_same_internship,
+            'is_edit': True,
+        }
+    )
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_attendance_list(request):
+    placements = (
+        InternshipPlacement.objects
+        .select_related(
+            'internship__company',
+            'internship__department',
+        )
+        .order_by('internship__company__company_name')
+    )
+
+    return render(
+        request,
+        'admin/admin_attendance_list.html',
+        {
+            'placements': placements
+        }
+    )
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_manage_attendance(request, internship_id):
+
+    # 1️⃣ Internship anchor
+    internship = get_object_or_404(
+        Internship.objects.select_related('company', 'department'),
+        id=internship_id
+    )
+
+    # 2️⃣ Placements under internship
+    placements = InternshipPlacement.objects.filter(
+        internship=internship
+    ).select_related(
+        'student__user',
+        'company_supervisor__user'
+    )
+
+    selected_placement = None
+    attendance_records = []
+
+    placement_id = request.GET.get('placement')
+
+    if placement_id:
+        selected_placement = get_object_or_404(
+            InternshipPlacement,
+            id=placement_id,
+            internship=internship
+        )
+
+        attendance_records = Attendance.objects.filter(
+            placement=selected_placement
+        ).order_by('-date')
+
+    # 🔒 Lock if placement completed
+    is_locked = selected_placement and selected_placement.status == 'Completed'
+
+    if request.method == 'POST' and selected_placement:
+
+        # 🗑 DELETE attendance
+        if 'delete_attendance' in request.POST and not is_locked:
+            attendance_id = request.POST.get('attendance_id')
+            attendance = get_object_or_404(
+                Attendance,
+                id=attendance_id,
+                placement=selected_placement
+            )
+            attendance.delete()
+            messages.success(request, "Attendance record deleted.")
+            return redirect(
+                f"{request.path}?placement={selected_placement.id}"
+            )
+
+        # ✏️ EDIT attendance
+        if 'edit_attendance' in request.POST and not is_locked:
+            attendance_id = request.POST.get('attendance_id')
+            attendance = get_object_or_404(
+                Attendance,
+                id=attendance_id,
+                placement=selected_placement
+            )
+
+            attendance.check_in = request.POST.get('check_in')
+            attendance.check_out = request.POST.get('check_out')
+            attendance.save(update_fields=['check_in', 'check_out', 'updated_at'])
+
+            messages.success(request, "Attendance updated.")
+            return redirect(
+                f"{request.path}?placement={selected_placement.id}"
+            )
+
+        # ➕ ADD attendance (optional)
+        if 'add_attendance' in request.POST and not is_locked:
+            Attendance.objects.create(
+                placement=selected_placement,
+                date=request.POST.get('date'),
+                check_in=request.POST.get('check_in'),
+                check_out=request.POST.get('check_out')
+            )
+            messages.success(request, "Attendance added.")
+            return redirect(
+                f"{request.path}?placement={selected_placement.id}"
+            )
+
+    return render(
+        request,
+        'admin/admin_attendance_manage.html',
+        {
+            'internship': internship,
+            'placements': placements,
+            'selected_placement': selected_placement,
+            'attendance_records': attendance_records,
+            'is_locked': is_locked,
+        }
+    )
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_logbooks_list(request):
+    placements = (
+        InternshipPlacement.objects
+        .select_related(
+            'student__user',
+            'internship__company',
+            'internship__department',
+            'company_supervisor__user',
+        )
+        .order_by('internship__company__company_name')
+    )
+
+    return render(
+        request,
+        'admin/admin_logbooks_list.html',
+        {
+            'placements': placements
+        }
+    )
+
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def admin_logbooks_manage(request):
+
+    # 1️⃣ Placement list (dropdown)
+    placements = (
+        InternshipPlacement.objects
+        .select_related(
+            'student__user',
+            'internship__company',
+            'internship',
+            'company_supervisor__user'
+        )
+        .distinct()
+        .order_by('internship__company__company_name', 'internship__title', 'student__user__username')
+    )
+
+
+    selected_placement = None
+    logbooks = []
+    is_locked = False
+
+    placement_id = request.GET.get('placement')
+
+    if placement_id:
+        selected_placement = get_object_or_404(
+            InternshipPlacement,
+            id=placement_id
+        )
+
+        is_locked = selected_placement.status == 'Completed'
+
+        # 2️⃣ Find the accepted application (bridge)
+        accepted_application = get_object_or_404(
+            InternshipApplication,
+            student=selected_placement.student,
+            internship=selected_placement.internship,
+            status='Accepted'
+        )
+
+        # 3️⃣ Fetch logbooks (THIS is where we differ from attendance)
+        logbooks = Logbook.objects.filter(
+            application=accepted_application
+        ).order_by('week_no')
+
+    # 4️⃣ POST actions (unchanged)
+    if request.method == 'POST' and selected_placement and not is_locked:
+        logbook_id = request.POST.get('logbook_id')
+
+        if 'update_status' in request.POST:
+            logbook = get_object_or_404(Logbook, id=logbook_id)
+            logbook.status = request.POST.get('status')
+            logbook.save()
+
+        elif 'delete_logbook' in request.POST:
+            Logbook.objects.filter(id=logbook_id).delete()
+
+        return redirect(f"{request.path}?placement={placement_id}")
+
+    return render(
+        request,
+        'admin/admin_logbooks_manage.html',
+        {
+            'placements': placements,
+            'selected_placement': selected_placement,
+            'logbooks': logbooks,
+            'is_locked': is_locked,
+        }
+    )
+
+
 
 
 @login_required

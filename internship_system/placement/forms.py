@@ -1,5 +1,5 @@
 from django import forms
-from .models import User, Student, AcademicSupervisor, CompanySupervisor, InternshipApplication, Document, Internship, Company, Department
+from .models import User, Student, AcademicSupervisor, CompanySupervisor, InternshipApplication, Document, Internship, Company, Department, InternshipPlacement
 from django.contrib.auth import get_user_model
 from django import forms
 
@@ -83,6 +83,56 @@ class InternshipForm(forms.ModelForm):
                 pass  # invalid input; leave empty
         elif self.instance.pk and self.instance.company:
             self.fields['department'].queryset = Department.objects.filter(company=self.instance.company)
+
+
+from django import forms
+from .models import InternshipPlacement, CompanySupervisor
+
+
+class InternshipPlacementForm(forms.ModelForm):
+    class Meta:
+        model = InternshipPlacement
+        fields = [
+            'student',
+            'internship',
+            'company_supervisor',
+            'start_date',
+            'end_date',
+            'status',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        placement = self.instance
+
+        if placement.pk:
+            self.fields['student'].disabled = True
+            self.fields['internship'].disabled = True
+
+            internship = placement.internship
+            company = internship.company
+            department = internship.department
+
+            qs = CompanySupervisor.objects.filter(company=company)
+            if department:
+                qs = qs.filter(department=department)
+
+            self.fields['company_supervisor'].queryset = qs
+        else:
+            self.fields['company_supervisor'].queryset = CompanySupervisor.objects.none()
+
+    def clean_student(self):
+        if self.instance.pk:
+            return self.instance.student
+        return self.cleaned_data['student']
+
+    def clean_internship(self):
+        if self.instance.pk:
+            return self.instance.internship
+        return self.cleaned_data['internship']
+
+
 
 
 

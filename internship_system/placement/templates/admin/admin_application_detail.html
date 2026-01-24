@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | Application Detail</title>
+
+    <style>
+        @import url("fontawesome-all.min.css");
+        @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,400,600");
+
+        :root {
+            --primary: #2563eb;
+            --danger: #dc2626;
+            --bg: #f5f5f5;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * { box-sizing: border-box; font-family: 'Source Sans Pro', sans-serif; }
+        body { margin: 0; background: var(--bg); color: var(--text); }
+
+        .page-wrapper {
+            padding: 40px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            padding: 32px;
+        }
+
+        h1 {
+            margin: 0 0 24px;
+            font-size: 40px;
+            font-weight: 300;
+            color: #666;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 24px 0;
+        }
+
+        label {
+            font-weight: 300;
+            color: #666;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        a { font-size: small;
+
+        }
+
+        .inline-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-back {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .detail-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .detail-row strong {
+            min-width: 110px; /* adjust once, all rows align */
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .inline-form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page-wrapper">
+    <div class="card">
+
+        <h1>📄 Application Detail</h1>
+
+        <form method="GET" action="">
+            <label>Applicants</label>
+
+            <div class="inline-form">
+                <select name="application_switch">
+                    {% for app in related_applications %}
+                        <option value="{{ app.id }}"
+                            {% if app.id == application.id %}selected{% endif %}>
+                            {{ app.student.user.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <button class="btn btn-primary" type="submit">
+                    View
+                </button>
+            </div>
+        </form>
+
+        <hr>
+
+        <p class="detail-row">
+            <strong>Student:</strong>
+            <span>{{ application.student.user.username }}</span>
+        </p>
+
+        <p class="detail-row">
+            <strong>Internship:</strong>
+            <span>{{ application.internship.title }}</span>
+        </p>
+
+        <p class="detail-row">
+            <strong>Company:</strong>
+            <span>{{ application.internship.company.company_name }}</span>
+        </p>
+
+        <p class="detail-row">
+            <strong>Department:</strong>
+            <span>{{ application.internship.department.name }}</span>
+        </p>
+
+        <p class="detail-row">
+            <strong>Status:</strong>
+            <span>{{ application.status }}</span>
+        </p>
+
+
+        <hr>
+
+        <form method="POST" action="{% url 'admin_replace_supervisor' application.id %}">
+            {% csrf_token %}
+            <label>Company Supervisor</label>
+
+            <select name="company_supervisor" {% if has_placement %}disabled{% endif %}>
+                {% for s in supervisors %}
+                    <option value="{{ s.id }}"
+                        {% if application.handled_by == s %}selected{% endif %}>
+                        {{ s.user.username }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            {% if not has_placement %}
+                <button class="btn btn-primary" style="margin-top:12px;">
+                    Replace Supervisor
+                </button>
+            {% else %}
+                <p class="muted">Supervisor locked (placement created)</p>
+            {% endif %}
+        </form>
+
+        <div class="actions">
+            <a href="{% url 'admin_applications_list' %}" class="btn btn-back">← Back</a>
+
+            {% if not has_placement %}
+            <form method="POST" action="{% url 'admin_delete_application' application.id %}">
+                {% csrf_token %}
+                <button class="btn btn-danger confirm-delete">
+                    Remove Application
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.confirm-delete').forEach(btn => {
+    btn.addEventListener('click', function(e){
+        if(!confirm("Are you sure you want to remove this application?")){
+            e.preventDefault();
+        }
+    });
+});
+</script>
+
+</body>
+</html>
+
