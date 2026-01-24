@@ -24,13 +24,12 @@
 
 #dropdown-menu {
     transition: all 0.2s ease;
-    border-bottom: 0.5px solid #8ebebc;
 }
 
 /* Dropdown items */
 #dropdown-menu li {
     padding: 0; 
-    background-color: transparent;
+    border-bottom: 0.5px solid #8ebebc;
 }
 
 #dropdown-menu li a, #dropdown-menu .empty {

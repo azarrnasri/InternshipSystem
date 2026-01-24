@@ -53,19 +53,24 @@
 }
 
 .intern-list {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin: 0 15px;
+    border: 1px solid #333;
+    border-radius: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .intern-list ul {
-    list-style: none;
-    padding: 0;
+    padding-left: 50px;
+    margin: 0;
+    color: #fff;
+    border-bottom: 2px solid #222629;
+    background-color: #2a2e32;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
 .intern-list li {
-    padding: 10px 0;
+    padding: 10px 10px;
     border-bottom: 1px solid #eee;
 }
 
@@ -158,6 +163,7 @@
     font-size: 16px; 
 }
 
+.intern-list h3,
 .application-table th,
 .attendance-table th,
 .evaluation-table th,

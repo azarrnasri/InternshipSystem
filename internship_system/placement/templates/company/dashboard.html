@@ -44,7 +44,7 @@
         <h3>Intern List</h3>
         <ul>
             {% for intern in interns %}
-                <li>{{ intern.user.username }}</li>
+                <li><a href="{% url 'company_student_profile' student_id=intern.id %}">{{ intern.user.username }}</a></li>
             {% empty %}
                 <li class="empty">No interns assigned</li>
             {% endfor %}

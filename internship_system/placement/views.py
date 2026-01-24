@@ -10,9 +10,8 @@ from django.utils import timezone
 from .decorators import role_required
 from .forms import AdminUserForm, StudentForm, AcademicSupervisorForm, CompanySupervisorForm, StudentProfileForm, DocumentUploadForm, InternshipApplicationForm, InternshipForm
 from django.utils.timezone import now, localtime
-from datetime import timedelta
-from django.http import JsonResponse, HttpResponseForbidden
 from datetime import timedelta, date, datetime
+from django.http import JsonResponse, HttpResponseForbidden
 from .models import (
     User,
     Student, 
