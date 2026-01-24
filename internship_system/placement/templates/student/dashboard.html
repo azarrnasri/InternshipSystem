@@ -3,54 +3,408 @@
 {% block title %}Student Dashboard{% endblock %}
 
 {% block content %}
-<section class="one">
+
     <div class="container">
 
         <header>
             <h2>Student Dashboard</h2>
-            <p>Welcome, {{ request.user.username }}</p>
+            <p>Welcome back, {{ request.user.username }}! Here's your internship overview.</p>
         </header>
 
+        <!-- Quick Stats Overview -->
+        <div class="stats-overview">
+            <div class="stat-card primary">
+                <div class="stat-icon">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ application_count }}</h3>
+                    <p>Total Applications</p>
+                </div>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ placement_status }}</h3>
+                    <p>Placement Status</p>
+                </div>
+            </div>
+
+            <div class="stat-card info">
+                <div class="stat-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ logbook_status }}</h3>
+                    <p>Logbook Status</p>
+                </div>
+            </div>
+
+            <div class="stat-card warning">
+                <div class="stat-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ notification_count }}</h3>
+                    <p>New Notifications</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Information Cards -->
         <div class="row">
+            <div class="col-6 col-12-mobile">
+                <article class="item enhanced-card">
+                    <header>
+                        <i class="fas fa-briefcase card-icon"></i>
+                        <h3>Internship Applications</h3>
+                    </header>
+                    <div class="card-content">
+                        <div class="metric">
+                            <span class="number">{{ application_count }}</span>
+                            <span class="label">Total Submitted</span>
+                        </div>
+                        <p>Track your internship applications and their progress. Check the "My Applications" section for detailed status updates.</p>
+                        <a href="{% url 'student_offers' %}" class="action-link">
+                            <i class="fas fa-arrow-right"></i> View Applications
+                        </a>
+                    </div>
+                </article>
+            </div>
 
             <div class="col-6 col-12-mobile">
-                <article class="item">
+                <article class="item enhanced-card">
                     <header>
+                        <i class="fas fa-map-marker-alt card-icon"></i>
                         <h3>Placement Status</h3>
                     </header>
-                    <p>{{ placement_status }}</p>
+                    <div class="card-content">
+                        <div class="status-indicator {{ placement_status|lower|cut:' ' }}">
+                            {{ placement_status }}
+                        </div>
+                        <p>Your current internship placement status. Stay updated on your placement progress and requirements.</p>
+                        <a href="{% url 'internship_list' %}" class="action-link">
+                            <i class="fas fa-search"></i> Browse Opportunities
+                        </a>
+                    </div>
                 </article>
             </div>
 
             <div class="col-6 col-12-mobile">
-                <article class="item">
+                <article class="item enhanced-card">
                     <header>
-                        <h3>Total Applications</h3>
+                        <i class="fas fa-book-open card-icon"></i>
+                        <h3>Logbook Management</h3>
                     </header>
-                    <p>{{ application_count }}</p>
+                    <div class="card-content">
+                        <div class="metric">
+                            <span class="number">{{ logbook_status }}</span>
+                        </div>
+                        <p>Maintain your internship logbook with daily entries, activities, and progress tracking.</p>
+                        <a href="{% url 'logbook_list' %}" class="action-link">
+                            <i class="fas fa-edit"></i> Manage Logbook
+                        </a>
+                    </div>
                 </article>
             </div>
 
             <div class="col-6 col-12-mobile">
-                <article class="item">
+                <article class="item enhanced-card">
                     <header>
-                        <h3>Logbook Status</h3>
-                    </header>
-                    <p>{{ logbook_status }}</p>
-                </article>
-            </div>
-
-            <div class="col-6 col-12-mobile">
-                <article class="item">
-                    <header>
+                        <i class="fas fa-bell card-icon"></i>
                         <h3>Notifications</h3>
                     </header>
-                    <p>{{ notification_count }} new</p>
+                    <div class="card-content">
+                        <div class="metric">
+                            <span class="number">{{ notification_count }}</span>
+                            <span class="label">New Messages</span>
+                        </div>
+                        <p>Stay informed about important updates, deadlines, and announcements from your supervisors.</p>
+                        <a href="{% url 'notifications' %}" class="action-link">
+                            <i class="fas fa-eye"></i> View Notifications
+                        </a>
+                    </div>
                 </article>
             </div>
+        </div>
 
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <h3>Quick Actions</h3>
+            <div class="action-buttons">
+                <a href="{% url 'internship_list' %}" class="action-btn primary">
+                    <i class="fas fa-plus"></i>
+                    Apply for Internship
+                </a>
+                <a href="{% url 'submit_logbook' 1 %}" class="action-btn secondary">
+                    <i class="fas fa-pen"></i>
+                    Submit Logbook Entry
+                </a>
+                <a href="{% url 'student_attendance_summary' %}" class="action-btn info">
+                    <i class="fas fa-calendar-check"></i>
+                    View Attendance
+                </a>
+                <a href="{% url 'student_profile' %}" class="action-btn success">
+                    <i class="fas fa-user-edit"></i>
+                    Update Profile
+                </a>
+            </div>
         </div>
 
     </div>
-</section>
+
+
+<style>
+/* Enhanced Dashboard Styles */
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-left: 4px solid;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card.primary { border-left-color: #8ebebc; }
+.stat-card.success { border-left-color: #28a745; }
+.stat-card.info { border-left-color: #17a2b8; }
+.stat-card.warning { border-left-color: #ffc107; }
+
+.stat-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+}
+
+.stat-card.primary .stat-icon { background: linear-gradient(135deg, #8ebebc, #7eaeac); }
+.stat-card.success .stat-icon { background: linear-gradient(135deg, #28a745, #20c997); }
+.stat-card.info .stat-icon { background: linear-gradient(135deg, #17a2b8, #138496); }
+.stat-card.warning .stat-icon { background: linear-gradient(135deg, #ffc107, #e0a800); }
+
+.stat-content h3 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+}
+
+.stat-content p {
+    margin: 4px 0 0 0;
+    color: #666;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Enhanced Cards */
+.enhanced-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 0;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #f0f0f0;
+}
+
+.enhanced-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.enhanced-card header {
+    background: linear-gradient(135deg, #8ebebc, #7eaeac);
+    color: #fff;
+    padding: 20px;
+    margin: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-icon {
+    font-size: 24px;
+    opacity: 0.9;
+}
+
+.enhanced-card header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.card-content {
+    padding: 24px;
+}
+
+.metric {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.metric .number {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+}
+
+.metric .label {
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.card-content p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.action-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #8ebebc;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: color 0.2s ease;
+}
+
+.action-link:hover {
+    color: #7eaeac;
+}
+
+.status-indicator {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.status-indicator.placed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-indicator.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-indicator.notplaced {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Quick Actions */
+.quick-actions {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.quick-actions h3 {
+    color: #333;
+    margin-bottom: 24px;
+    font-size: 24px;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    color: #fff;
+    border: none;
+}
+
+.action-btn.primary { background: linear-gradient(135deg, #8ebebc, #7eaeac); }
+.action-btn.secondary { background: linear-gradient(135deg, #6c757d, #5a6268); }
+.action-btn.info { background: linear-gradient(135deg, #17a2b8, #138496); }
+.action-btn.success { background: linear-gradient(135deg, #28a745, #20c997); }
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn i {
+    font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .stats-overview {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .action-buttons {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 14px;
+        gap: 10px;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .stat-content h3 {
+        font-size: 20px;
+    }
+
+    .stat-content p {
+        font-size: 11px;
+    }
+}
+</style>
 {% endblock %}

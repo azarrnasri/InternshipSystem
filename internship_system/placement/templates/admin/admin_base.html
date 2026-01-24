@@ -200,7 +200,7 @@ a:hover {
 
 					<!-- Logo -->
 						<div id="logo">
-							<div class="avatar"><i class="fa-solid fa-user-graduate"></i></div>
+							<div class="avatar"><i class="fa-solid fa-users"></i></div>
 							<h1 id="title">{{ request.user.username }}</h1>
 							<p>{{ request.user.role }}</p>
                             <a href="{% url 'logout' %}">Logout</a>
@@ -209,16 +209,16 @@ a:hover {
 					<!-- Nav -->
 						<nav id="nav">
 							<ul>
-								<li><a href="{% url 'student_dashboard' %}"id="dashboard-link"><span class="icon solid fa-home">  Dashboard</span></a></li>
-								<li><a href="{% url 'admin_company_list' %}"id="contact-link"><span class="icon solid fa-check">  Company Information</span></a></li>
-								<li><a href="{% url 'admin_user_list' %}"id="contact-link"><span class="icon solid fa-address-book">  User List</span></a></li>
+								<li><a href="{% url 'student_dashboard' %}"id="dashboard-link"><span class="icon solid fa-tachometer-alt">  Dashboard</span></a></li>
+								<li><a href="{% url 'admin_company_list' %}"id="contact-link"><span class="icon solid fa-building">  Company Information</span></a></li>
+								<li><a href="{% url 'admin_user_list' %}"id="contact-link"><span class="icon solid fa-users">  User List</span></a></li>
                                 <li><a href="{% url 'admin_internships_list' %}"id="about-link"><span class="icon solid fa-briefcase">  Internships</span></a></li>
-                                <li><a href="{% url 'admin_applications_list' %}" id="contact-link"><span class="icon solid fa-calendar">  Applications</span></a></li>
-                                <li><a href="{% url 'admin_internship_placements_list' %}" id="contact-link"><span class="icon solid fa-calendar">  Placements</span></a></li>
-                                <li><a href="{% url 'admin_attendance_list' %}" id="contact-link"><span class="icon solid fa-calendar">  Attendance Module</span></a></li>
-                                <li><a href="{% url 'admin_logbooks_manage' %}" id="contact-link"><span class="icon solid fa-calendar">  Logbooks Module</span></a></li>
-                                <li><a href="{% url 'admin' %}" id="contact-link"><span class="icon solid fa-calendar">  Evaluation Module</span></a></li>
-								<li><a href="{% url 'notifications' %}"><span class="icon solid fa-bell">-</span></a></li>
+                                <li><a href="{% url 'admin_applications_list' %}" id="contact-link"><span class="icon solid fa-file-alt">  Applications</span></a></li>
+                                <li><a href="{% url 'admin_internship_placements_list' %}" id="contact-link"><span class="icon solid fa-map-marker-alt">  Placements</span></a></li>
+                                <li><a href="{% url 'admin_attendance_list' %}" id="contact-link"><span class="icon solid fa-calendar-check">  Attendance Module</span></a></li>
+                                <li><a href="{% url 'admin_logbooks_manage' %}" id="contact-link"><span class="icon solid fa-book">  Logbooks Module</span></a></li>
+                                <li><a href="{% url 'admin' %}" id="contact-link"><span class="icon solid fa-star">  Evaluation Module</span></a></li>
+								<li><a href="{% url 'notifications' %}"><span class="icon solid fa-bell">  Notifications</span></a></li>
 							</ul>
 						</nav>
 
