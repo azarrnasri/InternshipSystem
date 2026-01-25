@@ -19,6 +19,7 @@ from .models import (
     Attendance, 
     PerformanceEvaluation, 
     AcademicSupervisor,
+    AcademicRecord,
     CompanySupervisor,
     Company,
     Document,
@@ -427,6 +428,44 @@ def submit_academic_evaluation(request, eval_id):
         evaluation.academic_supervisor_submitted_at = timezone.now()
         evaluation.save()
         return redirect('academic_student_detail', student_id=evaluation.student.id)
+    
+@login_required
+def academic_student_attendance(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    attendance_records = Attendance.objects.filter(
+        placement__student=student
+    ).order_by('-date')
+
+    return render(request, 'academic_student_attendance.html', {
+        'student': student,
+        'attendance_records': attendance_records,
+    })
+
+@login_required
+def academic_records(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    academic_supervisor = get_object_or_404(
+        AcademicSupervisor,
+        user=request.user
+    )
+
+    records = AcademicRecord.objects.filter(student=student).order_by('-created_at')
+
+    if request.method == 'POST':
+        notes = request.POST.get('notes')
+        if notes:
+            AcademicRecord.objects.create(
+                student=student,
+                academic_supervisor=academic_supervisor,
+                notes=notes
+            )
+            messages.success(request, "Academic record saved successfully.")
+            return redirect('academic_records', student_id=student.id)
+
+    return render(request, 'academic_records.html', {
+        'student': student,
+        'records': records
+    })
 
 @login_required
 @role_required(allowed_roles=['admin'])
@@ -2137,6 +2176,31 @@ def academic_logbook_review(request):
     })
 
 @login_required
+@role_required(['academic'])
+def academic_student_list(request):
+    supervisor = request.user.academicsupervisor
+    students = Student.objects.filter(academic_supervisor=supervisor)
+    return render(request, 'academic_student_list.html', {'students': students})
+
+@login_required
+def academic_student_list(request):
+    supervisor = request.user.academicsupervisor
+
+    students = Student.objects.filter(
+        academic_supervisor=supervisor
+    ).select_related('user')
+
+    return render(
+        request,
+        'academic_student_list.html',
+        {'students': students}
+    )
+
+@login_required
+def academic_performance_evaluation(request, student_id):
+    return render(request, 'academic_performance_evaluation.html')
+
+@login_required
 @role_required(['student'])
 def student_attendance_summary(request):
     student = get_object_or_404(Student, user=request.user)
@@ -2219,8 +2283,11 @@ def mark_notification_read(request, pk):
     return redirect('notifications')
 
 
-
-
+# Dummy student
+supervisor = AcademicSupervisor.objects.first()
+student_dummy = Student.objects.first()
+student_dummy.academic_supervisor = supervisor
+student_dummy.save()
 
 
 

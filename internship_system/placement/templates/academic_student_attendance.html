@@ -1,0 +1,27 @@
+{% extends "academic_dashboard.html" %}
+
+{% block content %}
+<h2>Attendance Records</h2>
+
+<p><strong>Student:</strong> {{ student.user.get_full_name|default:student.user.username }}</p>
+
+{% if attendance_records %}
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Date</th>
+        <th>Check In</th>
+        <th>Check Out</th>
+    </tr>
+    {% for record in attendance_records %}
+    <tr>
+        <td>{{ record.date }}</td>
+        <td>{{ record.check_in }}</td>
+        <td>{{ record.check_out|default:"—" }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No attendance records available.</p>
+{% endif %}
+
+{% endblock %}

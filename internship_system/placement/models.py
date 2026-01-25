@@ -28,6 +28,16 @@ class AcademicSupervisor(models.Model):
 
     def __str__(self):
         return self.user.username
+
+class AcademicRecord(models.Model):
+    student = models.ForeignKey('Student', on_delete=models.CASCADE)
+    academic_supervisor = models.ForeignKey(AcademicSupervisor, on_delete=models.CASCADE)
+    notes = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student} - Academic Record"
+
     
 # Student
 class Student(models.Model):

@@ -25,14 +25,15 @@
 						</div>
 
 					<!-- Nav -->
-						<nav id="nav">
+						<nav class="sidebar">
 							<ul>
-								<li><a href="#top" id="top-link"><span class="icon solid fa-home">Intro</span></a></li>
-								<li><a href="{% url 'academic_logbook_review' %}" id="portfolio-link"><span class="icon solid fa-th">Logbook</span></a></li>
-								<li><a href="#about" id="about-link"><span class="icon solid fa-user">About Me</span></a></li>
-								<li><a href="#contact" id="contact-link"><span class="icon solid fa-envelope">Contact</span></a></li>
+								<li><a href="{% url 'academic_dashboard' %}">Dashboard</a></li>
+								<li><a href="{% url 'academic_logbook_review' %}">Logbooks</a></li>
+								<li><a href="{% url 'academic_student_list' %}">Student List</a></li>
+								<li><a href="{% url 'notifications' %}">Notifications</a></li>
 							</ul>
 						</nav>
+
 
 				</div>
 
