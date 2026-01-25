@@ -184,6 +184,20 @@
 
     <h1>Attendance Management</h1>
 
+    <div class="top-actions" style="justify-content: flex-end;">
+        <form method="get" style="display: flex; gap: 10px; align-items: center;">
+            <label for="company" style="margin: 0; font-weight: 300;">Filter by Company:</label>
+            <select name="company" id="company" onchange="this.form.submit()" style="padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                <option value="">All Companies</option>
+                {% for company in companies %}
+                    <option value="{{ company.id }}" {% if selected_company == company.id|stringformat:"s" %}selected{% endif %}>
+                        {{ company.company_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
     {% regroup placements by internship.company as company_list %}
 
     {% for company in company_list %}

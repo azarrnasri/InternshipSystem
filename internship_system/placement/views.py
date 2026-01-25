@@ -588,6 +588,13 @@ def admin_add_user(request, user_id=None):
                         )
 
 
+                # Notify admin
+                action = "added" if not user_id else "updated"
+                Notification.objects.create(
+                    user=request.user,
+                    message=f"You {action} user {user.username} ({user.email})."
+                )
+
                 return redirect('admin_user_list')
 
     # --- Render page ---
@@ -610,30 +617,64 @@ def admin_user_delete(request, user_id):
     if user == request.user:
         return redirect('admin_user_list')
 
+    # Notify admin
+    Notification.objects.create(
+        user=request.user,
+        message=f"You deleted user {user.username} ({user.email})."
+    )
+
     user.delete()
     return redirect('admin_user_list')
 
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin_user_list(request):
-    students = User.objects.filter(role='student').select_related('student')
-    academics = User.objects.filter(role='academic').select_related('academicsupervisor')
-    companies = User.objects.filter(role='company').select_related('companysupervisor')
-    admins = User.objects.filter(role='admin')
+    role_filter = request.GET.get('role', 'all')
+
+    if role_filter == 'student':
+        students = User.objects.filter(role='student').select_related('student')
+        academics = User.objects.none()
+        companies = User.objects.none()
+        admins = User.objects.none()
+    elif role_filter == 'academic':
+        students = User.objects.none()
+        academics = User.objects.filter(role='academic').select_related('academicsupervisor')
+        companies = User.objects.none()
+        admins = User.objects.none()
+    elif role_filter == 'company':
+        students = User.objects.none()
+        academics = User.objects.none()
+        companies = User.objects.filter(role='company').select_related('companysupervisor')
+        admins = User.objects.none()
+    elif role_filter == 'admin':
+        students = User.objects.none()
+        academics = User.objects.none()
+        companies = User.objects.none()
+        admins = User.objects.filter(role='admin')
+    else:
+        students = User.objects.filter(role='student').select_related('student')
+        academics = User.objects.filter(role='academic').select_related('academicsupervisor')
+        companies = User.objects.filter(role='company').select_related('companysupervisor')
+        admins = User.objects.filter(role='admin')
 
     return render(request, 'admin/admin_user_list.html', {
         'students': students,
         'academics': academics,
         'companies': companies,
         'admins': admins,
+        'selected_role': role_filter,
     })
 
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin_company_list(request):
+    search = request.GET.get('search', '')
     companies = Company.objects.all()
+    if search:
+        companies = companies.filter(company_name__icontains=search)
     return render(request, 'admin/admin_company_list.html', {
-        'companies': companies
+        'companies': companies,
+        'search': search,
     })
 
 
@@ -645,9 +686,14 @@ def admin_add_company(request):
         address = request.POST.get('address')
 
         if company_name and address:
-            Company.objects.create(
+            company = Company.objects.create(
                 company_name=company_name,
                 address=address
+            )
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You added company {company.company_name}."
             )
             return redirect('admin_company_list')
 
@@ -663,6 +709,12 @@ def admin_edit_company(request, company_id):
         company.company_name = request.POST.get('company_name')
         company.address = request.POST.get('address')
         company.save()
+
+        # Notify admin
+        Notification.objects.create(
+            user=request.user,
+            message=f"You updated company {company.company_name}."
+        )
 
         # 2️⃣ Update existing departments
         dept_ids = request.POST.getlist('dept_id[]')
@@ -703,6 +755,12 @@ def admin_edit_company(request, company_id):
 def admin_delete_company(request, company_id):
     company = get_object_or_404(Company, id=company_id)
 
+    # Notify admin
+    Notification.objects.create(
+        user=request.user,
+        message=f"You deleted company {company.company_name}."
+    )
+
     company.delete()
     return redirect('admin_company_list')
 
@@ -710,23 +768,31 @@ def admin_delete_company(request, company_id):
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin_internships_list(request):
+    company_id = request.GET.get('company')
     internships = (
         Internship.objects
         .select_related('company')
         .order_by('company__company_name', 'title')
     )
+    if company_id:
+        internships = internships.filter(company_id=company_id)
+
+    companies = Company.objects.all().order_by('company_name')
 
     return render(
         request,
         'admin/admin_internships_list.html',
         {
-            'internships': internships
+            'internships': internships,
+            'companies': companies,
+            'selected_company': company_id,
         }
     )
 
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin_applications_list(request):
+    company_id = request.GET.get('company')
 
     applications = (
         InternshipApplication.objects
@@ -744,8 +810,15 @@ def admin_applications_list(request):
         )
     )
 
+    if company_id:
+        applications = applications.filter(internship__company_id=company_id)
+
+    companies = Company.objects.all().order_by('company_name')
+
     return render(request, 'admin/admin_applications_list.html', {
-        'applications': applications
+        'applications': applications,
+        'companies': companies,
+        'selected_company': company_id,
     })
 
 
@@ -799,6 +872,12 @@ def admin_delete_application(request, application_id):
         messages.error(request, "Cannot delete application after placement is created.")
         return redirect('admin_application_detail', application_id=application.id)
 
+    # Notify admin
+    Notification.objects.create(
+        user=request.user,
+        message=f"You deleted application from {application.student.user.username} for {application.internship.title} at {application.internship.company.company_name}."
+    )
+
     application.delete()
     messages.success(request, "Application removed successfully.")
     return redirect('admin_applications_list')
@@ -834,6 +913,12 @@ def admin_replace_supervisor(request, application_id):
             updated_at=timezone.now()
         )
 
+        # Notify admin
+        Notification.objects.create(
+            user=request.user,
+            message=f"You changed company supervisor to {supervisor.user.username} for internship {internship.title} at {internship.company.company_name}."
+        )
+
         messages.success(
             request,
             "Company supervisor updated for all students in this internship."
@@ -847,6 +932,8 @@ def admin_replace_supervisor(request, application_id):
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin_internship_placements_list(request):
+    company_id = request.GET.get('company')
+
     placements = (
         InternshipPlacement.objects
         .select_related(
@@ -858,11 +945,18 @@ def admin_internship_placements_list(request):
         .order_by('internship__company__company_name')
     )
 
+    if company_id:
+        placements = placements.filter(internship__company_id=company_id)
+
+    companies = Company.objects.all().order_by('company_name')
+
     return render(
         request,
         'admin/admin_internship_placements.html',
         {
-            'placements': placements
+            'placements': placements,
+            'companies': companies,
+            'selected_company': company_id,
         }
     )
 
@@ -898,6 +992,11 @@ def admin_manage_placement(request, placement_id):
     if request.method == 'POST':
 
         if "delete_placement" in request.POST:
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You deleted placement for {placement.student.user.username} at {placement.internship.company.company_name}."
+            )
             placement.delete()
             messages.success(request, "Placement deleted.")
             return redirect('admin_internship_placements_list')
@@ -906,6 +1005,11 @@ def admin_manage_placement(request, placement_id):
             remove_id = request.POST.get("remove_student_id")
             placement_to_remove = get_object_or_404(
                 InternshipPlacement, id=remove_id
+            )
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You removed {placement_to_remove.student.user.username} from placement at {placement_to_remove.internship.company.company_name}."
             )
             placement_to_remove.delete()
             messages.success(request, "Student removed from placement.")
@@ -925,6 +1029,12 @@ def admin_manage_placement(request, placement_id):
                     end_date=cleaned['end_date'],
                     status=cleaned['status'],
                     updated_at=timezone.now()
+                )
+
+                # Notify admin
+                Notification.objects.create(
+                    user=request.user,
+                    message=f"You updated placements for internship {placement.internship.title} at {placement.internship.company.company_name}."
                 )
 
                 messages.success(
@@ -950,6 +1060,8 @@ def admin_manage_placement(request, placement_id):
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin_attendance_list(request):
+    company_id = request.GET.get('company')
+
     placements = (
         InternshipPlacement.objects
         .select_related(
@@ -959,11 +1071,18 @@ def admin_attendance_list(request):
         .order_by('internship__company__company_name')
     )
 
+    if company_id:
+        placements = placements.filter(internship__company_id=company_id)
+
+    companies = Company.objects.all().order_by('company_name')
+
     return render(
         request,
         'admin/admin_attendance_list.html',
         {
-            'placements': placements
+            'placements': placements,
+            'companies': companies,
+            'selected_company': company_id,
         }
     )
 
@@ -1015,6 +1134,11 @@ def admin_manage_attendance(request, internship_id):
                 id=attendance_id,
                 placement=selected_placement
             )
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You deleted attendance record for {selected_placement.student.user.username} on {attendance.date}."
+            )
             attendance.delete()
             messages.success(request, "Attendance record deleted.")
             return redirect(
@@ -1034,6 +1158,12 @@ def admin_manage_attendance(request, internship_id):
             attendance.check_out = request.POST.get('check_out')
             attendance.save(update_fields=['check_in', 'check_out', 'updated_at'])
 
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You updated attendance for {selected_placement.student.user.username} on {attendance.date}."
+            )
+
             messages.success(request, "Attendance updated.")
             return redirect(
                 f"{request.path}?placement={selected_placement.id}"
@@ -1041,11 +1171,16 @@ def admin_manage_attendance(request, internship_id):
 
         # ➕ ADD attendance (optional)
         if 'add_attendance' in request.POST and not is_locked:
-            Attendance.objects.create(
+            attendance = Attendance.objects.create(
                 placement=selected_placement,
                 date=request.POST.get('date'),
                 check_in=request.POST.get('check_in'),
                 check_out=request.POST.get('check_out')
+            )
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You added attendance record for {selected_placement.student.user.username} on {attendance.date}."
             )
             messages.success(request, "Attendance added.")
             return redirect(
@@ -1068,6 +1203,8 @@ def admin_manage_attendance(request, internship_id):
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin_logbooks_list(request):
+    company_id = request.GET.get('company')
+
     placements = (
         InternshipPlacement.objects
         .select_related(
@@ -1079,11 +1216,18 @@ def admin_logbooks_list(request):
         .order_by('internship__company__company_name')
     )
 
+    if company_id:
+        placements = placements.filter(internship__company_id=company_id)
+
+    companies = Company.objects.all().order_by('company_name')
+
     return render(
         request,
         'admin/admin_logbooks_list.html',
         {
-            'placements': placements
+            'placements': placements,
+            'companies': companies,
+            'selected_company': company_id,
         }
     )
 
@@ -1092,69 +1236,86 @@ def admin_logbooks_list(request):
 @role_required(allowed_roles=['admin'])
 def admin_logbooks_manage(request):
 
-    # 1️⃣ Placement list (dropdown)
-    placements = (
-        InternshipPlacement.objects
-        .select_related(
-            'student__user',
-            'internship__company',
-            'internship',
-            'company_supervisor__user'
-        )
-        .distinct()
-        .order_by('internship__company__company_name', 'internship__title', 'student__user__username')
-    )
+    # Get filter params
+    company_id = request.GET.get('company')
+    internship_id = request.GET.get('internship')
+    student_id = request.GET.get('student')
 
+    # Get all for selects
+    companies = Company.objects.all().order_by('company_name')
+    internships = Internship.objects.select_related('company').order_by('company__company_name', 'title')
+    students = User.objects.filter(role='student').order_by('username')
 
-    selected_placement = None
-    logbooks = []
-    is_locked = False
+    # Filter internships and students based on selections
+    if company_id:
+        internships = internships.filter(company_id=company_id)
+        students = students.filter(
+            student__internshipplacement__internship__company_id=company_id
+        ).distinct()
 
-    placement_id = request.GET.get('placement')
+    if internship_id:
+        students = students.filter(
+            student__internshipplacement__internship_id=internship_id
+        ).distinct()
 
-    if placement_id:
-        selected_placement = get_object_or_404(
-            InternshipPlacement,
-            id=placement_id
-        )
+    selected_student = None
+    logbooks_by_internship = {}
 
-        is_locked = selected_placement.status == 'Completed'
+    if student_id:
+        selected_student = get_object_or_404(User, id=student_id, role='student')
 
-        # 2️⃣ Find the accepted application (bridge)
-        accepted_application = get_object_or_404(
-            InternshipApplication,
-            student=selected_placement.student,
-            internship=selected_placement.internship,
-            status='Accepted'
-        )
-
-        # 3️⃣ Fetch logbooks (THIS is where we differ from attendance)
+        # Get logbooks for this student
         logbooks = Logbook.objects.filter(
-            application=accepted_application
-        ).order_by('week_no')
+            application__student__user=selected_student,
+            application__status='Accepted'
+        ).select_related(
+            'application__internship__company'
+        ).order_by('application__internship__title', 'week_no')
 
-    # 4️⃣ POST actions (unchanged)
-    if request.method == 'POST' and selected_placement and not is_locked:
+        # Group by internship
+        for log in logbooks:
+            internship = log.application.internship
+            if internship not in logbooks_by_internship:
+                logbooks_by_internship[internship] = []
+            logbooks_by_internship[internship].append(log)
+
+    # POST actions
+    if request.method == 'POST' and selected_student:
         logbook_id = request.POST.get('logbook_id')
 
         if 'update_status' in request.POST:
             logbook = get_object_or_404(Logbook, id=logbook_id)
+            old_status = logbook.status
             logbook.status = request.POST.get('status')
             logbook.save()
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You updated logbook status for {logbook.application.student.user.username} week {logbook.week_no} from {old_status} to {logbook.status}."
+            )
 
         elif 'delete_logbook' in request.POST:
-            Logbook.objects.filter(id=logbook_id).delete()
+            logbook = Logbook.objects.get(id=logbook_id)
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You deleted logbook for {logbook.application.student.user.username} week {logbook.week_no}."
+            )
+            logbook.delete()
 
-        return redirect(f"{request.path}?placement={placement_id}")
+        return redirect(f"{request.path}?company={company_id or ''}&internship={internship_id or ''}&student={student_id}")
 
     return render(
         request,
         'admin/admin_logbooks_manage.html',
         {
-            'placements': placements,
-            'selected_placement': selected_placement,
-            'logbooks': logbooks,
-            'is_locked': is_locked,
+            'companies': companies,
+            'internships': internships,
+            'students': students,
+            'selected_company': company_id,
+            'selected_internship': internship_id,
+            'selected_student': selected_student,
+            'logbooks_by_internship': logbooks_by_internship,
         }
     )
 
@@ -1163,11 +1324,126 @@ def admin_logbooks_manage(request):
 
 @login_required
 @role_required(allowed_roles=['admin'])
+def admin_evaluations_manage(request):
+
+    # Get filter params
+    company_id = request.GET.get('company')
+    internship_id = request.GET.get('internship')
+    student_id = request.GET.get('student')
+
+    # Get all for selects
+    companies = Company.objects.all().order_by('company_name')
+    internships = Internship.objects.select_related('company').order_by('company__company_name', 'title')
+    students = User.objects.filter(role='student').order_by('username')
+
+    # Filter internships and students based on selections
+    if company_id:
+        internships = internships.filter(company_id=company_id)
+        students = students.filter(
+            student__internshipapplication__internship__company_id=company_id
+        ).distinct()
+
+    if internship_id:
+        students = students.filter(
+            student__internshipapplication__internship_id=internship_id
+        ).distinct()
+
+    selected_student = None
+    evaluations_by_internship = {}
+
+    if student_id:
+        selected_student = get_object_or_404(User, id=student_id, role='student')
+
+        # Get evaluations for this student
+        evaluations = PerformanceEvaluation.objects.filter(
+            application__student__user=selected_student
+        ).select_related(
+            'application__internship__company'
+        ).order_by('application__internship__title')
+
+        # Calculate final score
+        for eval in evaluations:
+            if eval.company_supervisor_score and eval.academic_supervisor_score:
+                eval.final_score = (eval.company_supervisor_score + eval.academic_supervisor_score) / 2
+            else:
+                eval.final_score = None
+
+        # Group by internship
+        for eval in evaluations:
+            internship = eval.application.internship
+            if internship not in evaluations_by_internship:
+                evaluations_by_internship[internship] = []
+            evaluations_by_internship[internship].append(eval)
+
+    # POST actions (if needed, e.g., delete evaluation)
+    if request.method == 'POST' and selected_student:
+        eval_id = request.POST.get('eval_id')
+
+        if 'delete_evaluation' in request.POST:
+            evaluation = PerformanceEvaluation.objects.get(id=eval_id)
+            # Notify supervisors before deleting
+            Notification.objects.create(
+                user=evaluation.company_supervisor.user,
+                message=f"The evaluation for {evaluation.student.user.username} has been deleted by admin."
+            )
+            Notification.objects.create(
+                user=evaluation.academic_supervisor.user,
+                message=f"The evaluation for {evaluation.student.user.username} has been deleted by admin."
+            )
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You deleted the evaluation for {evaluation.student.user.username}."
+            )
+            evaluation.delete()
+
+        elif 'reset_company' in request.POST:
+            eval_id = request.POST.get('reset_company')
+            evaluation = get_object_or_404(PerformanceEvaluation, id=eval_id)
+            # Reset company supervisor fields
+            evaluation.company_supervisor_score = None
+            evaluation.company_question_answers = None
+            evaluation.company_supervisor_comment = None
+            evaluation.company_supervisor_submitted_at = None
+            evaluation.save()
+
+            # Notify company supervisor
+            Notification.objects.create(
+                user=evaluation.company_supervisor.user,
+                message=f"Your evaluation for {evaluation.student.user.username} has been reset by admin. Please submit your evaluation again."
+            )
+
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You reset the company evaluation for {evaluation.student.user.username}."
+            )
+
+        return redirect(f"{request.path}?company={company_id or ''}&internship={internship_id or ''}&student={student_id}")
+
+    return render(
+        request,
+        'admin/admin_evaluations_manage.html',
+        {
+            'companies': companies,
+            'internships': internships,
+            'students': students,
+            'selected_company': company_id,
+            'selected_internship': internship_id,
+            'selected_student': selected_student,
+            'evaluations_by_internship': evaluations_by_internship,
+        }
+    )
 def admin_add_internship(request):
     if request.method == 'POST':
         form = InternshipForm(request.POST)
         if form.is_valid():
-            form.save()
+            internship = form.save()
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You added internship {internship.title} at {internship.company.company_name}."
+            )
             return redirect('admin_internships_list')
     else:
         form = InternshipForm()
@@ -1187,7 +1463,12 @@ def admin_edit_internship(request, internship_id):
     if request.method == 'POST':
         form = InternshipForm(request.POST, instance=internship)
         if form.is_valid():
-            form.save()
+            internship = form.save()
+            # Notify admin
+            Notification.objects.create(
+                user=request.user,
+                message=f"You updated internship {internship.title} at {internship.company.company_name}."
+            )
             return redirect('admin_internships_list')
     else:
         form = InternshipForm(instance=internship)
@@ -1203,6 +1484,11 @@ def admin_edit_internship(request, internship_id):
 @role_required(allowed_roles=['admin'])
 def admin_delete_internship(request, internship_id):
     internship = get_object_or_404(Internship, id=internship_id)
+    # Notify admin
+    Notification.objects.create(
+        user=request.user,
+        message=f"You deleted internship {internship.title} at {internship.company.company_name}."
+    )
     internship.delete()
     messages.success(request, f'Internship "{internship.title}" has been deleted.')
     return redirect('admin_internships_list')

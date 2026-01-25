@@ -1,252 +1,108 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Admin - Manage Logbooks</title>
-    <style>
-    @import url("fontawesome-all.min.css");
-    @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,400,600");
-
-    :root {
-        --primary: #2563eb;
-        --danger: #dc2626;
-        --bg: #f5f5f5;
-        --card: #ffffff;
-        --text: #1f2937;
-        --muted: #6b7280;
-        --border: #e5e7eb;
-    }
-
-    * {
-        box-sizing: border-box;
-        font-family: 'Source Sans Pro', sans-serif;
-    }
-
-    body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
-    }
-
-    /* === layout === */
-    .page-wrapper {
-        padding: 40px;
-        max-width: 1100px;
-        margin: auto;
-    }
-
-    /* === cards === */
-    .card {
-        background: var(--card);
-        border-radius: 14px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        padding: 28px;
-        margin-bottom: 24px;
-    }
-
-    /* === typography === */
-    h1 {
-        font-size: 40px;
-        font-weight: 300;
-        color: #666;
-        margin: 0 0 24px;
-    }
-
-    h2 {
-        font-size: 22px;
-        font-weight: 300;
-        color: #666;
-        margin-bottom: 16px;
-    }
-
-    label {
-        font-weight: 300;
-        color: #666;
-        margin-bottom: 6px;
-        display: block;
-    }
-
-    /* === inputs === */
-    select,
-    input[type="date"],
-    input[type="time"] {
-        width: 100%;
-        padding: 10px 12px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        font-size: 14px;
-        margin-bottom: 14px;
-    }
-
-    /* === buttons === */
-    .btn {
-        padding: 10px 18px;
-        border-radius: 8px;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        text-decoration: none;
-        font-size: 14px;
-    }
-
-    .btn-primary {
-        background: var(--primary);
-        color: white;
-    }
-
-    .btn-danger {
-        background: var(--danger);
-        color: white;
-    }
-
-    .btn-back {
-        background: #e5e7eb;
-        color: #111827;
-        display: inline-block;
-        margin-bottom: 24px;
-    }
-
-    .btn:hover {
-        opacity: 0.9;
-    }
-
-    /* === table === */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    thead th {
-        background: #f9fafb;
-        font-size: 13px;
-        color: var(--muted);
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid var(--border);
-    }
-
-    tbody td {
-        padding: 12px;
-        font-size: 14px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    tbody tr:hover {
-        background: #f9fafb;
-    }
-
-    .empty {
-        padding: 16px;
-        color: var(--muted);
-        font-style: italic;
-    }
-
-    /* === responsive === */
-    @media (max-width: 768px) {
-        table, thead, tbody, th, td, tr {
-            display: block;
-        }
-
-        thead {
-            display: none;
-        }
-
-        tbody tr {
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 16px;
-        }
-
-        tbody td {
-            border: none;
-            padding: 6px 0;
-        }
-
-        tbody td::before {
-            content: attr(data-label);
-            font-weight: 600;
-            display: block;
-            color: var(--muted);
-            font-size: 12px;
-        }
-    }
-    </style>
+    <link rel="stylesheet" href="{% static 'placement/assets/css/admin_logbooks_manage.css' %}">
 </head>
 
 <body>
 <div class="page-wrapper">
 
-    <a href="{% url 'admin_logbooks_list' %}" class="btn btn-back">← Back</a>
-
     <h1>Manage Logbooks</h1>
 
     <div class="card">
-        <label><strong>Select Student</strong></label>
+        <h2>Filters</h2>
 
-        <form method="get">
-            <select name="placement" onchange="this.form.submit()">
-                <option value="">— Select Student —</option>
-
-                {% for p in placements %}
-                    <option value="{{ p.id }}"
-                        {% if selected_placement and selected_placement.id == p.id %}
+        <form method="get" id="filter-form">
+            <label><strong>Company</strong></label>
+            <select name="company" onchange="this.form.submit()">
+                <option value="">— All Companies —</option>
+                {% for company in companies %}
+                    <option value="{{ company.id }}"
+                        {% if selected_company == company.id|stringformat:"s" %}
                             selected
                         {% endif %}
                     >
-                        {{ p.internship.company.company_name }} - {{ p.internship.title }} - {{ p.student.user.username }}
+                        {{ company.company_name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label><strong>Internship</strong></label>
+            <select name="internship" onchange="this.form.submit()">
+                <option value="">— All Internships —</option>
+                {% for internship in internships %}
+                    <option value="{{ internship.id }}"
+                        {% if selected_internship == internship.id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ internship.company.company_name }} - {{ internship.title }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label><strong>Student</strong></label>
+            <select name="student" onchange="this.form.submit()">
+                <option value="">— Select Student —</option>
+                {% for student in students %}
+                    <option value="{{ student.id }}"
+                        {% if selected_student and selected_student.id == student.id %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ student.username }} ({{ student.email }})
                     </option>
                 {% endfor %}
             </select>
         </form>
     </div>
 
-    {% if selected_placement %}
-    <div class="card">
-        <h2>
-            Logbooks — {{ selected_placement.student.user.username }}
-        </h2>
+    {% if selected_student %}
+        {% for internship, logs in logbooks_by_internship.items %}
+        <div class="card">
+            <h2>
+                {{ internship.company.company_name }} - {{ internship.title }}
+            </h2>
 
-        {% if is_locked %}
-            <p class="empty">
-                🔒 This placement is completed. Logbooks are read-only.
-            </p>
-        {% endif %}
-
-        <table>
-            <thead>
-            <tr>
-                <th>Week</th>
-                <th>Submitted</th>
-                <th>Content</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-
-            <tbody>
-            {% for log in logbooks %}
+            <table>
+                <thead>
                 <tr>
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="logbook_id" value="{{ log.id }}">
+                    <th>Week</th>
+                    <th>Submitted</th>
+                    <th>Content</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
 
-                        <td data-label="Week">
-                            Week {{ log.week_no }}
-                        </td>
+                <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="logbook_id" value="{{ log.id }}">
 
-                        <td data-label="Submitted">
-                            {{ log.submitted_date }}
-                        </td>
+                            <td data-label="Week">
+                                Week {{ log.week_no }}
+                            </td>
 
-                        <td data-label="Content">
-                            <div style="white-space: pre-wrap;">
-                                {{ log.content }}
-                            </div>
-                        </td>
+                            <td data-label="Submitted">
+                                {{ log.submitted_date }}
+                            </td>
 
-                        <td data-label="Status">
-                            {% if not is_locked %}
+                            <td data-label="Content">
+                                <div style="white-space: pre-wrap;">
+                                    {{ log.content }}
+                                </div>
+                            </td>
+
+                            <td data-label="Status">
                                 <select name="status">
                                     {% for key, val in log.STATUS_CHOICES %}
                                         <option value="{{ key }}"
@@ -255,13 +111,9 @@
                                         </option>
                                     {% endfor %}
                                 </select>
-                            {% else %}
-                                {{ log.status }}
-                            {% endif %}
-                        </td>
+                            </td>
 
-                        <td data-label="Actions">
-                            {% if not is_locked %}
+                            <td data-label="Actions">
                                 <button type="submit"
                                         name="update_status"
                                         class="btn btn-primary">
@@ -274,24 +126,28 @@
                                         onclick="return confirm('Delete this logbook?')">
                                     Delete
                                 </button>
-                            {% else %}
-                                —
-                            {% endif %}
+                            </td>
+                        </form>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="empty">
+                            No logbook entries found for this internship.
                         </td>
-                    </form>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="5" class="empty">
-                        No logbook entries found.
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% empty %}
+        <div class="card">
+            <div class="empty">No logbooks found for this student.</div>
+        </div>
+        {% endfor %}
     {% endif %}
 
 </div>
 </body>
 </html>
+{% endblock %}
+

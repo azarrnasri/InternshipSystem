@@ -83,6 +83,7 @@ urlpatterns = [
     path('manager/attendance/manage/<int:internship_id>/', views.admin_manage_attendance, name='admin_attendance_manage'),
     path('manager/logbooks/', views.admin_logbooks_list, name='admin_logbooks_list'),
     path('manager/logbooks/manage/', views.admin_logbooks_manage, name='admin_logbooks_manage'),
+    path('manager/evaluations/manage/', views.admin_evaluations_manage, name='admin_evaluations_manage'),
 
 
 

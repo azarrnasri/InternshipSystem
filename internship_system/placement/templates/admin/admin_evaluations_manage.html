@@ -1,0 +1,148 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Manage Evaluations</title>
+    <link rel="stylesheet" href="{% static 'placement/assets/css/admin_evaluations_manage.css' %}">
+</head>
+
+<body>
+<div class="page-wrapper">
+
+    <h1>Manage Evaluations</h1>
+
+    <div class="card">
+        <h2>Filters</h2>
+
+        <form method="get" id="filter-form">
+            <label><strong>Company</strong></label>
+            <select name="company" onchange="this.form.submit()">
+                <option value="">— All Companies —</option>
+                {% for company in companies %}
+                    <option value="{{ company.id }}"
+                        {% if selected_company == company.id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ company.company_name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label><strong>Internship</strong></label>
+            <select name="internship" onchange="this.form.submit()">
+                <option value="">— All Internships —</option>
+                {% for internship in internships %}
+                    <option value="{{ internship.id }}"
+                        {% if selected_internship == internship.id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ internship.company.company_name }} - {{ internship.title }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label><strong>Student</strong></label>
+            <select name="student" onchange="this.form.submit()">
+                <option value="">— Select Student —</option>
+                {% for student in students %}
+                    <option value="{{ student.id }}"
+                        {% if selected_student and selected_student.id == student.id %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ student.username }} ({{ student.email }})
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    {% if selected_student %}
+        {% for internship, evals in evaluations_by_internship.items %}
+        <div class="card">
+            <h2>
+                {{ selected_student.username }} ({{ selected_student.email }})
+            </h2>
+            <h2 class="student-full-name">
+                {{ selected_student.first_name }} {{ selected_student.last_name }}
+            </h2>
+
+            {% for eval in evals %}
+            <div class="evaluation-cards">
+                <!-- Company Supervisor Evaluation -->
+                <div class="evaluation-card">
+                    <h3>Company Supervisor Evaluation</h3>
+                    <p class="supervisor-name"><strong>Supervisor:</strong> {{ eval.company_supervisor.user.username }} ({{ eval.company_supervisor.user.email }})</p>
+                    {% if eval.company_question_answers %}
+                        <div class="questions">
+                            <p><strong>1. The intern performs assigned tasks responsibly:</strong> {{ eval.company_question_answers.q1 }}/5</p>
+                            <p><strong>2. The intern demonstrates technical competence:</strong> {{ eval.company_question_answers.q2 }}/5</p>
+                            <p><strong>3. The intern communicates effectively:</strong> {{ eval.company_question_answers.q3 }}/5</p>
+                            <p><strong>4. The intern shows professionalism and discipline:</strong> {{ eval.company_question_answers.q4 }}/5</p>
+                            <p><strong>5. The intern adapts well to the working environment:</strong> {{ eval.company_question_answers.q5 }}/5</p>
+                        </div>
+                    {% else %}
+                        <p>No questions answered yet.</p>
+                    {% endif %}
+                    <p><strong>Score:</strong> {{ eval.company_supervisor_score|default:"—" }}/100</p>
+                    <p><strong>Comment:</strong> {{ eval.company_supervisor_comment|default:"—" }}</p>
+                    <p><strong>Submitted:</strong> {{ eval.company_supervisor_submitted_at|date:"M d, Y H:i"|default:"—" }}</p>
+                    {% if eval.company_supervisor_submitted_at %}
+                    <div class="card-actions">
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" name="reset_company" value="{{ eval.id }}" class="btn btn-warning">Reset Evaluation</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Academic Supervisor Evaluation -->
+                <div class="evaluation-card">
+                    <h3>Academic Supervisor Evaluation</h3>
+                    <p class="supervisor-name"><strong>Supervisor:</strong> {{ eval.academic_supervisor.user.username }} ({{ eval.academic_supervisor.user.email }})</p>
+                    <p><strong>Score:</strong> {{ eval.academic_supervisor_score|default:"—" }}/100</p>
+                    <p><strong>Comment:</strong> {{ eval.academic_supervisor_comment|default:"—" }}</p>
+                    <p><strong>Submitted:</strong> {{ eval.academic_supervisor_submitted_at|date:"M d, Y H:i"|default:"—" }}</p>
+                    <!-- {% if eval.academic_supervisor_submitted_at %}
+                    <div class="card-actions">
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" name="reset_academic" value="{{ eval.id }}" class="btn btn-warning">Reset Evaluation</button>
+                        </form>
+                    </div>
+                    {% endif %} -->
+                </div>
+            </div>
+
+            <div class="actions" style="margin-top: 20px;">
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="eval_id" value="{{ eval.id }}">
+                    <button type="submit"
+                            name="delete_evaluation"
+                            class="btn btn-danger"
+                            onclick="return confirm('Delete this evaluation?')">
+                        Delete Evaluation
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% empty %}
+        <div class="card">
+            <div class="empty">No evaluations found for this student.</div>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+</div>
+</body>
+</html>
+{% endblock %}
