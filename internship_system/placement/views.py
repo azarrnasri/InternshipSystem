@@ -2283,8 +2283,11 @@ def mark_notification_read(request, pk):
     return redirect('notifications')
 
 
-
-
+# Dummy student
+supervisor = AcademicSupervisor.objects.first()
+student_dummy = Student.objects.first()
+student_dummy.academic_supervisor = supervisor
+student_dummy.save()
 
 
 
