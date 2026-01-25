@@ -1,0 +1,27 @@
+{% extends "academic_dashboard.html" %}
+
+{% block content %}
+<h2>Academic Records / Internal Notes</h2>
+
+<p><strong>Student:</strong> {{ student.user.get_full_name|default:student.user.username }}</p>
+
+<h3>Add New Record</h3>
+<form method="post">
+    {% csrf_token %}
+    <textarea name="notes" rows="5" style="width:100%;" required></textarea><br><br>
+    <button type="submit">Save Record</button>
+</form>
+
+<hr>
+
+<h3>Previous Records</h3>
+{% if records %}
+    {% for record in records %}
+        <p><strong>{{ record.created_at }}</strong></p>
+        <p style="white-space: pre-wrap;">{{ record.notes }}</p>
+        <hr>
+    {% endfor %}
+{% else %}
+    <p>No academic records yet.</p>
+{% endif %}
+{% endblock %}

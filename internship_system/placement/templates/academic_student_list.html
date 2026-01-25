@@ -1,0 +1,40 @@
+{% extends "academic_dashboard.html" %}
+
+{% block content %}
+<h2>Assigned Students</h2>
+
+{% if students %}
+<table border="1" cellpadding="8" cellspacing="0">
+    <tr>
+        <th>Name</th>
+        <th>Matric No</th>
+        <th>Programme</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for student in students %}
+    <tr>
+        <td>{{ student.user.get_full_name }}</td>
+        <td>{{ student.matric_no }}</td>
+        <td>{{ student.programme }}</td>
+        <td>
+            <a href="{% url 'academic_performance_evaluation' student.id %}">
+                Performance Evaluation
+            </a>
+            |
+            <a href="{% url 'academic_student_attendance' student.id %}">
+                Attendance Records
+            </a>
+            |
+            <a href="{% url 'academic_records' student.id %}">
+                Academic Records
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No students assigned yet.</p>
+{% endif %}
+
+{% endblock %}
