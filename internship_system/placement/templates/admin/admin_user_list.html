@@ -202,12 +202,23 @@
     <h1>User Management</h1>
 
     <div class="top-actions" style="justify-content: space-between;">
-    <a href="{% url 'admin_add_user' %}" class="btn btn-primary">
-        ✚ Add User
-    </a>
+        <a href="{% url 'admin_add_user' %}" class="btn btn-primary">
+            ✚ Add User
+        </a>
+
+        <form method="get" style="display: flex; gap: 10px; align-items: center;">
+            <label for="role" style="margin: 0; font-weight: 300;">Filter by Role:</label>
+            <select name="role" id="role" onchange="this.form.submit()" style="padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                <option value="all" {% if selected_role == 'all' %}selected{% endif %}>All Roles</option>
+                <option value="student" {% if selected_role == 'student' %}selected{% endif %}>Students</option>
+                <option value="academic" {% if selected_role == 'academic' %}selected{% endif %}>Academic Supervisors</option>
+                <option value="company" {% if selected_role == 'company' %}selected{% endif %}>Company Supervisors</option>
+            </select>
+        </form>
     </div>
 
     <!-- Students -->
+    {% if students %}
     <div class="card">
         <h2>Students</h2>
         <table>
@@ -245,8 +256,10 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
 
     <!-- Academic Supervisors -->
+    {% if academics %}
     <div class="card">
         <h2>Academic Supervisors</h2>
         <table>
@@ -280,8 +293,10 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
 
     <!-- Company Supervisors -->
+    {% if companies %}
     <div class="card">
         <h2>Company Supervisors</h2>
         <table>
@@ -331,10 +346,10 @@
             </tbody>
         </table>
 
-  
+
 
     </div>
-
+    {% endif %}
 </div>
 
 {% endblock %}
