@@ -1,27 +1,277 @@
 {% extends "academic_dashboard.html" %}
 
 {% block content %}
-<h2>Attendance Records</h2>
+<style>
+    .attendance-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-<p><strong>Student:</strong> {{ student.user.get_full_name|default:student.user.username }}</p>
+    .attendance-header {
+        margin-bottom: 40px;
+    }
 
-{% if attendance_records %}
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Date</th>
-        <th>Check In</th>
-        <th>Check Out</th>
-    </tr>
-    {% for record in attendance_records %}
-    <tr>
-        <td>{{ record.date }}</td>
-        <td>{{ record.check_in }}</td>
-        <td>{{ record.check_out|default:"—" }}</td>
-    </tr>
-    {% endfor %}
-</table>
-{% else %}
-<p>No attendance records available.</p>
-{% endif %}
+    .attendance-header h2 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1e3a8a;
+        margin: 0;
+        letter-spacing: -0.5px;
+    }
+
+    .student-info-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .student-info-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #0ea5e9, #1e3a8a);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 12px;
+    }
+
+    .info-block {
+        background: linear-gradient(135deg, #f1f5f9 0%, #f8fafc 100%);
+        padding: 14px;
+        border-radius: 8px;
+        border-left: 3px solid #0ea5e9;
+    }
+
+    .info-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    .info-value {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1e3a8a;
+    }
+
+    .attendance-table-wrapper {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+        border: 1px solid #e2e8f0;
+        overflow-x: auto;
+    }
+
+    .attendance-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .attendance-table thead {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
+        color: white;
+    }
+
+    .attendance-table th {
+        padding: 16px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+    }
+
+    .attendance-table tbody tr {
+        border-bottom: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .attendance-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .attendance-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .attendance-table td {
+        padding: 16px;
+        color: #1e3a8a;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .date-cell {
+        font-weight: 700;
+        color: #1e3a8a;
+    }
+
+    .time-cell {
+        font-family: 'Courier New', monospace;
+        background: #f0f9ff;
+        padding: 8px 12px !important;
+        border-radius: 6px;
+        color: #0ea5e9;
+        font-weight: 700;
+    }
+
+    .empty-cell {
+        color: #94a3b8;
+        font-style: italic;
+    }
+
+    .no-records {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 12px;
+        padding: 60px 32px;
+        text-align: center;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+    }
+
+    .no-records-icon {
+        font-size: 56px;
+        margin-bottom: 20px;
+        opacity: 0.8;
+    }
+
+    .no-records p:first-of-type {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1e3a8a;
+        margin-bottom: 8px;
+        letter-spacing: -0.3px;
+    }
+
+    .no-records p:last-of-type {
+        font-size: 14px;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+        border: 1px solid #e2e8f0;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #0ea5e9;
+        margin-bottom: 8px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+<div class="attendance-container">
+    <div class="attendance-header">
+        <h2>📋 Attendance Records</h2>
+    </div>
+
+    <!-- Student Info Card -->
+    <div class="student-info-card">
+        <div style="font-size: 14px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px;">Student Information</div>
+        <div class="info-grid">
+            <div class="info-block">
+                <span class="info-label">Full Name</span>
+                <span class="info-value">{{ student.user.get_full_name|default:"N/A" }}</span>
+            </div>
+            <div class="info-block">
+                <span class="info-label">Username</span>
+                <span class="info-value">{{ student.user.username }}</span>
+            </div>
+            <div class="info-block">
+                <span class="info-label">Programme</span>
+                <span class="info-value">{{ student.program|default:"N/A" }}</span>
+            </div>
+            <div class="info-block">
+                <span class="info-label">Semester</span>
+                <span class="info-value">{{ student.semester|default:"N/A" }}</span>
+            </div>
+        </div>
+    </div>
+
+    {% if attendance_records %}
+    <!-- Stats Cards -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-value">{{ attendance_records|length }}</div>
+            <div class="stat-label">Total Days</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ attendance_records|length }}</div>
+            <div class="stat-label">Present</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Absent</div>
+        </div>
+    </div>
+
+    <!-- Attendance Table -->
+    <div class="attendance-table-wrapper">
+        <table class="attendance-table">
+            <thead>
+                <tr>
+                    <th>📅 Date</th>
+                    <th>🔵 Check In</th>
+                    <th>🔴 Check Out</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in attendance_records %}
+                <tr>
+                    <td class="date-cell">{{ record.date|date:"M d, Y" }}</td>
+                    <td class="time-cell">{{ record.check_in|time:"H:i" }}</td>
+                    <td class="time-cell">{% if record.check_out %}{{ record.check_out|time:"H:i" }}{% else %}<span class="empty-cell">—</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="no-records">
+        <div class="no-records-icon">📭</div>
+        <p>No Attendance Records</p>
+        <p>There are no attendance records available for this student yet.</p>
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}
