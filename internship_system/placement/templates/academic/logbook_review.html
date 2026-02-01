@@ -1,43 +1,239 @@
 {% extends "academic_dashboard.html" %}
 
 {% block content %}
-<h2>Logbook Review</h2>
+<style>
+    .logbook-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-{% if logbooks %}
-    {% for logbook in logbooks %}
-        <h3>{{ logbook.student.user.get_full_name }} — Week {{ logbook.week_no }}</h3>
+    .logbook-header {
+        margin-bottom: 30px;
+    }
 
-        <table border="1" cellpadding="8">
-            <tr>
-                <th>Student</th><td>{{ logbook.student.user.username }}</td>
-            </tr>
-            <tr>
-                <th>Week</th><td>{{ logbook.week_no }}</td>
-            </tr>
-            <tr>
-                <th>Submitted Date</th><td>{{ logbook.submitted_date }}</td>
-            </tr>
-            <tr>
-                <th>Status</th><td><strong>{{ logbook.status }}</strong></td>
-            </tr>
-        </table>
+    .logbook-header h2 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+    }
 
-        <h4>Logbook Content</h4>
-        <p style="white-space: pre-wrap;">{{ logbook.content }}</p>
+    .logbook-card {
+        background-color: #ffffff;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
 
-        <h4>Company Approval</h4>
-        {% if logbook.company_approval == True %}
-            <p style="color:green;">Approved by Company Supervisor</p>
-        {% elif logbook.company_approval == False %}
-            <p style="color:red;">Rejected by Company Supervisor</p>
-        {% else %}
-            <p>Pending Company Approval</p>
-        {% endif %}
+    .logbook-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
 
-        <hr>
-    {% endfor %}
-{% else %}
-    <p>No logbooks available yet for your students.</p>
-{% endif %}
+    .logbook-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .logbook-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-approved {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-rejected {
+        background-color: #fee2e2;
+        color: #7f1d1d;
+    }
+
+    .company-approval-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .approval-approved {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .approval-rejected {
+        background-color: #fee2e2;
+        color: #7f1d1d;
+    }
+
+    .approval-pending {
+        background-color: #e0e7ff;
+        color: #3730a3;
+    }
+
+    .logbook-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .info-item {
+        background-color: #f9fafb;
+        padding: 12px;
+        border-radius: 6px;
+        border-left: 3px solid #3b82f6;
+    }
+
+    .info-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .logbook-content-section {
+        margin-top: 20px;
+    }
+
+    .content-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .content-box {
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 16px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #374151;
+        max-height: 300px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .company-approval-section {
+        margin-top: 16px;
+        padding: 16px;
+        background-color: #f9fafb;
+        border-radius: 6px;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .approval-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .no-logbooks {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+    }
+
+    .no-logbooks-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+</style>
+
+<div class="logbook-container">
+    <div class="logbook-header">
+        <h2>Logbook Review</h2>
+    </div>
+
+    {% if logbooks %}
+        {% for logbook in logbooks %}
+            <div class="logbook-card">
+                <div class="logbook-card-header">
+                    <div>
+                        <div class="logbook-title">{{ logbook.student.user.get_full_name }}  Week {{ logbook.week_no }}</div>
+                    </div>
+                    <span class="status-badge {% if logbook.status == 'approved' %}status-approved{% elif logbook.status == 'rejected' %}status-rejected{% else %}status-pending{% endif %}">
+                        {{ logbook.status }}
+                    </span>
+                </div>
+
+                <div class="logbook-info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Student Username</div>
+                        <div class="info-value">{{ logbook.student.user.username }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Submitted Date</div>
+                        <div class="info-value">{{ logbook.submitted_date|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Program</div>
+                        <div class="info-value">{{ logbook.student.program }}</div>
+                    </div>
+                </div>
+
+                <div class="logbook-content-section">
+                    <div class="content-label">📝 Logbook Content</div>
+                    <div class="content-box">{{ logbook.content }}</div>
+                </div>
+
+                <div class="company-approval-section">
+                    <div class="approval-label">Company Approval Status</div>
+                    {% if logbook.company_approval == True %}
+                        <span class="company-approval-badge approval-approved">✓ Approved by Company Supervisor</span>
+                    {% elif logbook.company_approval == False %}
+                        <span class="company-approval-badge approval-rejected">✗ Rejected by Company Supervisor</span>
+                    {% else %}
+                        <span class="company-approval-badge approval-pending">⏱ Pending Company Approval</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="logbook-card">
+            <div class="no-logbooks">
+                <div class="no-logbooks-icon">📚</div>
+                <p style="font-size: 16px; font-weight: 500;">No logbooks available</p>
+                <p>No logbooks available yet for your students.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
 
 {% endblock %}

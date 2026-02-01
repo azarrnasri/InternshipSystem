@@ -9,6 +9,9 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
         <!-- CSS -->
         <link rel="stylesheet" href="{% static 'placement/assets/css/main.css' %}">
+        <link rel="stylesheet" href="{% static 'placement/assets/css/dashboard.css' %}">
+        <link rel="stylesheet" href="{% static 'placement/assets/css/sidebar.css' %}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 	</head>
 	<body class="is-preload">
 		<!-- Header -->
@@ -25,12 +28,15 @@
 						</div>
 
 					<!-- Nav -->
+						<button id="sidebar-toggle" class="sidebar-toggle">
+							<i class="fas fa-bars"></i>
+						</button>
 						<nav class="sidebar">
 							<ul>
-								<li><a href="{% url 'academic_dashboard' %}">Dashboard</a></li>
-								<li><a href="{% url 'academic_logbook_review' %}">Logbooks</a></li>
-								<li><a href="{% url 'academic_student_list' %}">Student List</a></li>
-								<li><a href="{% url 'notifications' %}">Notifications</a></li>
+								<li><a href="{% url 'academic_dashboard' %}" class="nav-item" data-page="dashboard"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
+								<li><a href="{% url 'academic_logbook_review' %}" class="nav-item" data-page="logbooks"><i class="fas fa-book"></i><span>Logbooks</span></a></li>
+								<li><a href="{% url 'academic_student_list' %}" class="nav-item" data-page="students"><i class="fas fa-users"></i><span>Student List</span></a></li>
+								<li><a href="{% url 'notifications' %}" class="nav-item" data-page="notifications"><i class="fas fa-bell"></i><span>Notifications</span></a></li>
 							</ul>
 						</nav>
 
@@ -55,16 +61,6 @@
 		<!-- Main -->
 		<div id="main">
 			{% block content %}
-			<!-- Intro / Dashboard Header -->
-			<section id="top" class="one dark cover">
-				<div class="container">
-					<header>
-						<h2 class="alt">Welcome, {{ request.user.get_full_name }}</h2>
-						<p>Academic Supervisor Dashboard</p>
-					</header>
-				</div>
-			</section>
-
 			<!-- Academic Supervisor Summary -->
 			<section id="summary" class="two">
 				<div class="container">
@@ -74,10 +70,11 @@
 
 					<div class="row">
 						<!-- Assigned Students -->
-						<div class="col-4 col-12-mobile">
-							<article class="item">
+						<div class="col-12">
+							<article class="dashboard-card">
 								<header>
 									<h3>Assigned Students</h3>
+									<span class="card-count">{{ students|length }}</span>
 								</header>
 								<ul>
 									{% for s in students %}
@@ -94,12 +91,13 @@
 						</div>
 
 						<!-- Pending Logbooks -->
-						<div class="col-4 col-12-mobile">
-							<article class="item">
+						<div class="col-12">
+							<article class="dashboard-card">
 								<header>
 									<h3>Pending Logbooks</h3>
+									<span class="card-count">{{ pending_logbooks.count }}</span>
 								</header>
-								<p>{{ pending_logbooks.count }} logbooks awaiting review</p>
+								<p>Logbooks awaiting review</p>
 								<ul>
 									{% for log in pending_logbooks %}
 									<li>
@@ -113,12 +111,13 @@
 						</div>
 
 						<!-- Pending Evaluations -->
-						<div class="col-4 col-12-mobile">
-							<article class="item">
+						<div class="col-12">
+							<article class="dashboard-card">
 								<header>
 									<h3>Pending Evaluations</h3>
+									<span class="card-count">{{ pending_evals.count }}</span>
 								</header>
-								<p>{{ pending_evals.count }} evaluations awaiting submission</p>
+								<p>Evaluations awaiting submission</p>
 								<ul>
 									{% for eval in pending_evals %}
 									<li>
@@ -154,6 +153,7 @@
             <script src="{% static 'placement/assets/js/breakpoints.min.js' %}"></script>
             <script src="{% static 'placement/assets/js/util.js' %}"></script>
             <script src="{% static 'placement/assets/js/main.js' %}"></script>
+            <script src="{% static 'placement/assets/js/sidebar.js' %}"></script>
 
 		{% endblock %}
 		</div>
