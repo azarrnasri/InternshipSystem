@@ -391,7 +391,7 @@ def academic_dashboard(request):
         'pending_evals': pending_evals,
     }
 
-    return render(request, 'academic_dashboard.html')
+    return render(request, 'academic/academic_dashboard.html')
 
 def academic_student_detail(request, student_id):
     supervisor = request.user.academicsupervisor
@@ -413,7 +413,7 @@ def academic_student_detail(request, student_id):
         'evaluations': evaluations
     }
 
-    return render(request, 'academic_student_detail.html', context)
+    return render(request, 'academic/academic_student_detail.html', context)
 
 def submit_academic_evaluation(request, eval_id):
     evaluation = get_object_or_404(
@@ -436,7 +436,7 @@ def academic_student_attendance(request, student_id):
         placement__student=student
     ).order_by('-date')
 
-    return render(request, 'academic_student_attendance.html', {
+    return render(request, 'academic/academic_student_attendance.html', {
         'student': student,
         'attendance_records': attendance_records,
     })
@@ -462,7 +462,7 @@ def academic_records(request, student_id):
             messages.success(request, "Academic record saved successfully.")
             return redirect('academic_records', student_id=student.id)
 
-    return render(request, 'academic_records.html', {
+    return render(request, 'academic/academic_records.html', {
         'student': student,
         'records': records
     })
@@ -2180,7 +2180,7 @@ def academic_logbook_review(request):
 def academic_student_list(request):
     supervisor = request.user.academicsupervisor
     students = Student.objects.filter(academic_supervisor=supervisor)
-    return render(request, 'academic_student_list.html', {'students': students})
+    return render(request, 'academic/academic_student_list.html', {'students': students})
 
 @login_required
 def academic_student_list(request):
@@ -2192,7 +2192,7 @@ def academic_student_list(request):
 
     return render(
         request,
-        'academic_student_list.html',
+        'academic/academic_student_list.html',
         {'students': students}
     )
 
@@ -2275,7 +2275,7 @@ def academic_performance_evaluation(request, student_id):
         student=student
     ).order_by('-academic_supervisor_submitted_at')
     
-    return render(request, 'academic_performance_evaluation.html', {
+    return render(request, 'academic/academic_performance_evaluation.html', {
         'student': student,
         'placement': placement,
         'previous_evaluations': previous_evaluations
