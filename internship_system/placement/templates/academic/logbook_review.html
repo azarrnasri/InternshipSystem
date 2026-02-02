@@ -21,63 +21,46 @@
 
     .logbook-card {
         background-color: #ffffff;
-        border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 24px;
+        border-radius: 10px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         border: 1px solid #e5e7eb;
         transition: all 0.3s ease;
     }
 
     .logbook-card:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
     }
 
-    .logbook-card-header {
+    /* Clickable summary header */
+    .logbook-toggle {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 16px;
-        padding-bottom: 16px;
-        border-bottom: 2px solid #e5e7eb;
+        cursor: pointer;
+        gap: 16px;
     }
 
     .logbook-title {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 600;
         color: #1f2937;
     }
 
-    .status-badge {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+    .logbook-meta {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 4px;
     }
 
-    .status-pending {
-        background-color: #fef3c7;
-        color: #92400e;
-    }
-
-    .status-approved {
-        background-color: #d1fae5;
-        color: #065f46;
-    }
-
-    .status-rejected {
-        background-color: #fee2e2;
-        color: #7f1d1d;
-    }
-
+    /* Company approval badges */
     .company-approval-badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
+        padding: 6px 12px;
+        border-radius: 999px;
         font-size: 12px;
-        font-weight: 600;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
     .approval-approved {
@@ -95,36 +78,15 @@
         color: #3730a3;
     }
 
-    .logbook-info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        margin-bottom: 20px;
-    }
-
-    .info-item {
-        background-color: #f9fafb;
-        padding: 12px;
-        border-radius: 6px;
-        border-left: 3px solid #3b82f6;
-    }
-
-    .info-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #6b7280;
-        text-transform: uppercase;
-        margin-bottom: 4px;
-    }
-
-    .info-value {
-        font-size: 14px;
-        font-weight: 500;
-        color: #1f2937;
-    }
-
-    .logbook-content-section {
+    /* Collapsible content */
+    .logbook-details {
+        display: none;
         margin-top: 20px;
+        animation: fadeIn 0.25s ease;
+    }
+
+    .logbook-card.active .logbook-details {
+        display: block;
     }
 
     .content-label {
@@ -142,26 +104,9 @@
         font-size: 14px;
         line-height: 1.6;
         color: #374151;
-        max-height: 300px;
-        overflow-y: auto;
         white-space: pre-wrap;
-        word-wrap: break-word;
-    }
-
-    .company-approval-section {
-        margin-top: 16px;
-        padding: 16px;
-        background-color: #f9fafb;
-        border-radius: 6px;
-        border-left: 4px solid #3b82f6;
-    }
-
-    .approval-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #6b7280;
-        text-transform: uppercase;
-        margin-bottom: 6px;
+        max-height: 320px;
+        overflow-y: auto;
     }
 
     .no-logbooks {
@@ -174,6 +119,17 @@
         font-size: 48px;
         margin-bottom: 16px;
     }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
 
 <div class="logbook-container">
@@ -183,45 +139,40 @@
 
     {% if logbooks %}
         {% for logbook in logbooks %}
-            <div class="logbook-card">
-                <div class="logbook-card-header">
+            <div class="logbook-card" data-logbook>
+                <!-- SUMMARY (CLICKABLE) -->
+                <div class="logbook-toggle">
                     <div>
-                        <div class="logbook-title">{{ logbook.student.user.get_full_name }}  Week {{ logbook.week_no }}</div>
+                        <div class="logbook-title">
+                            {{ logbook.student.user.get_full_name|default:logbook.student.user.username }}
+                        </div>
+                        <div class="logbook-meta">
+                            Program: {{ logbook.student.program }} •
+                            Submitted: {{ logbook.submitted_date|date:"M d, Y" }}
+                        </div>
                     </div>
-                    <span class="status-badge {% if logbook.status == 'approved' %}status-approved{% elif logbook.status == 'rejected' %}status-rejected{% else %}status-pending{% endif %}">
-                        {{ logbook.status }}
-                    </span>
-                </div>
 
-                <div class="logbook-info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Student Username</div>
-                        <div class="info-value">{{ logbook.student.user.username }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Submitted Date</div>
-                        <div class="info-value">{{ logbook.submitted_date|date:"M d, Y" }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Program</div>
-                        <div class="info-value">{{ logbook.student.program }}</div>
-                    </div>
-                </div>
-
-                <div class="logbook-content-section">
-                    <div class="content-label">📝 Logbook Content</div>
-                    <div class="content-box">{{ logbook.content }}</div>
-                </div>
-
-                <div class="company-approval-section">
-                    <div class="approval-label">Company Approval Status</div>
                     {% if logbook.company_approval == True %}
-                        <span class="company-approval-badge approval-approved">✓ Approved by Company Supervisor</span>
+                        <span class="company-approval-badge approval-approved">
+                            ✓ Company Approved
+                        </span>
                     {% elif logbook.company_approval == False %}
-                        <span class="company-approval-badge approval-rejected">✗ Rejected by Company Supervisor</span>
+                        <span class="company-approval-badge approval-rejected">
+                            ✗ Company Rejected
+                        </span>
                     {% else %}
-                        <span class="company-approval-badge approval-pending">⏱ Pending Company Approval</span>
+                        <span class="company-approval-badge approval-pending">
+                            ⏱ Pending Company Approval
+                        </span>
                     {% endif %}
+                </div>
+
+                <!-- EXPANDED CONTENT -->
+                <div class="logbook-details">
+                    <div class="content-label">📝 Logbook Content</div>
+                    <div class="content-box">
+                        {{ logbook.content }}
+                    </div>
                 </div>
             </div>
         {% endfor %}
@@ -229,11 +180,23 @@
         <div class="logbook-card">
             <div class="no-logbooks">
                 <div class="no-logbooks-icon">📚</div>
-                <p style="font-size: 16px; font-weight: 500;">No logbooks available</p>
-                <p>No logbooks available yet for your students.</p>
+                <p style="font-size:16px; font-weight:600;">No logbooks available</p>
+                <p>No logbooks have been submitted by your students yet.</p>
             </div>
         </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[data-logbook]").forEach(card => {
+        const toggle = card.querySelector(".logbook-toggle");
+
+        toggle.addEventListener("click", () => {
+            card.classList.toggle("active");
+        });
+    });
+});
+</script>
 
 {% endblock %}

@@ -370,16 +370,13 @@ def evaluate_intern(request, placement_id):
 def academic_dashboard(request):
     supervisor = request.user.academicsupervisor
 
-    # All students assigned to this supervisor
     students = Student.objects.filter(academic_supervisor=supervisor)
 
-    # Pending logbooks (no academic notes yet)
     pending_logbooks = Logbook.objects.filter(
         student__in=students,
         academic_supervisor_notes__isnull=True
     )
 
-    # Pending performance evaluations
     pending_evals = PerformanceEvaluation.objects.filter(
         academic_supervisor=supervisor,
         academic_supervisor_submitted_at__isnull=True
@@ -391,7 +388,9 @@ def academic_dashboard(request):
         'pending_evals': pending_evals,
     }
 
-    return render(request, 'academic/academic_dashboard.html')
+    return render(request, 'academic/academic_dashboard.html', context)
+
+
 
 def academic_student_detail(request, student_id):
     supervisor = request.user.academicsupervisor

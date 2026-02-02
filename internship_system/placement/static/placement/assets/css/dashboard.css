@@ -1,5 +1,4 @@
 /* Dashboard Card Styling */
-
 .dashboard-card {
     background-color: #f9fafb;
     border-radius: 8px;
@@ -91,5 +90,86 @@
 
     .card-count {
         font-size: 24px;
+    }
+}
+
+/* ---------------- Pending Logbooks Styling ---------------- */
+.pending-logbooks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+/* Individual Pending Logbook Card */
+.pending-logbook-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-left: 5px solid #f39c12; /* orange highlight for pending */
+    background-color: #fff8e1;       /* soft yellow */
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+
+.pending-logbook-card:hover {
+    background-color: #fde68a;       /* slightly darker on hover */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.pending-logbook-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.logbook-student {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #78350f;
+}
+
+.logbook-week {
+    font-size: 0.85rem;
+    color: #92400e;
+}
+
+.status-badge.status-pending {
+    background-color: #f39c12;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* ---------------- Other Adjustments for Consistency ---------------- */
+.pending-logbooks-list a {
+    text-decoration: none;
+}
+
+.pending-logbooks-list a:hover {
+    text-decoration: none;
+}
+
+/* Optional: Make cards wrap on larger screens */
+@media screen and (min-width: 768px) {
+    .pending-logbooks-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .pending-logbook-card {
+        width: calc(50% - 12px); /* two cards per row with gap */
+    }
+}
+
+@media screen and (min-width: 1024px) {
+    .pending-logbook-card {
+        width: calc(33.333% - 12px); /* three cards per row with gap */
     }
 }

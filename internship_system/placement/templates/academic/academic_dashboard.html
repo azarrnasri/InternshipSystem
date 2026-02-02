@@ -98,17 +98,24 @@
 									<span class="card-count">{{ pending_logbooks.count }}</span>
 								</header>
 								<p>Logbooks awaiting review</p>
-								<ul>
+								<div class="pending-logbooks-list">
 									{% for log in pending_logbooks %}
-									<li>
-										{{ log.student.user.get_full_name }} - Week {{ log.week_no }}
-									</li>
+									<div class="pending-logbook-card">
+										<div class="pending-logbook-info">
+											<span class="logbook-student">
+												{{ log.student.user.get_full_name|default:log.student.user.username }}
+											</span>
+											<span class="logbook-date">Submitted: {{ log.submitted_date|date:"M d, Y" }}</span>
+										</div>
+									</div>
 									{% empty %}
-									<li>No pending logbooks.</li>
+									<p>No pending logbooks.</p>
 									{% endfor %}
-								</ul>
+								</div>
 							</article>
 						</div>
+
+
 
 						<!-- Pending Evaluations -->
 						<div class="col-12">
