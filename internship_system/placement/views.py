@@ -2226,12 +2226,13 @@ def academic_performance_evaluation(request, student_id):
                 messages.error(request, 'No company supervisor assigned to this internship.')
                 return redirect('academic_performance_evaluation', student_id=student_id)
             
-            evaluation, created = PerformanceEvaluation.objects.get_or_create(
+            evaluation = PerformanceEvaluation.objects.create(
                 student=student,
                 academic_supervisor=academic_supervisor,
                 application=placement.application,
                 company_supervisor=company_supervisor
             )
+
             
             # Store evaluation data as JSON
             evaluation_data = {
