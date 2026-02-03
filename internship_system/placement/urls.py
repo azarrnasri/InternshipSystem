@@ -97,7 +97,7 @@ urlpatterns = [
     path('academic/', lambda request: redirect('academic_dashboard')),
     path('academic/dashboard/', views.academic_dashboard, name='academic_dashboard'),
     path('academic/student/<int:student_id>/', views.academic_student_detail, name='academic_student_detail'),
-    path('academic/evaluation/<int:eval_id>/submit/', views.submit_academic_evaluation, name='submit_academic_evaluation'),
+    path('academic/evaluation/<int:student_id>/submit/', views.submit_academic_evaluation, name='submit_academic_evaluation'),
     
     path('academic/students/', views.academic_student_list, name='academic_student_list'),
     path('academic/student/<int:student_id>/evaluation/', views.academic_performance_evaluation, name='academic_performance_evaluation'),

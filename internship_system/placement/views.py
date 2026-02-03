@@ -414,19 +414,56 @@ def academic_student_detail(request, student_id):
 
     return render(request, 'academic/academic_student_detail.html', context)
 
-def submit_academic_evaluation(request, eval_id):
-    evaluation = get_object_or_404(
-        PerformanceEvaluation,
-        id=eval_id,
-        academic_supervisor=request.user.academicsupervisor
+
+def submit_academic_evaluation(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    academic_supervisor = request.user.academicsupervisor
+
+    # Create a new evaluation or get existing one for this student and supervisor
+    evaluation, created = PerformanceEvaluation.objects.get_or_create(
+        student=student,
+        academic_supervisor=academic_supervisor,
+        defaults={
+            'company_supervisor': student.internship.company.supervisor if hasattr(student, 'internship') else None,
+            'application': student.internship.application if hasattr(student, 'internship') else None,
+        }
     )
 
     if request.method == 'POST':
-        evaluation.academic_supervisor_score = request.POST.get('score')
-        evaluation.academic_supervisor_comment = request.POST.get('comment')
+        # Save detailed scores & comments from the form
+        evaluation.company_question_answers = {
+            'attendance': {
+                'score': int(request.POST.get('attendance_score', 0)),
+                'comment': request.POST.get('attendance_comment', ''),
+            },
+            'punctuality': {
+                'score': int(request.POST.get('punctuality_score', 0)),
+                'comment': request.POST.get('punctuality_comment', ''),
+            },
+            'work_quality': {
+                'score': int(request.POST.get('work_quality_score', 0)),
+                'comment': request.POST.get('work_quality_comment', ''),
+            },
+            'overall': {
+                'score': int(request.POST.get('overall_score', 0)),
+                'comment': request.POST.get('overall_comment', ''),
+            },
+        }
+
+        evaluation.academic_supervisor_score = int(request.POST.get('overall_score', 0))
+        evaluation.academic_supervisor_comment = request.POST.get('overall_comment', '')
         evaluation.academic_supervisor_submitted_at = timezone.now()
         evaluation.save()
-        return redirect('academic_student_detail', student_id=evaluation.student.id)
+
+        return redirect('academic_student_detail', student_id=student.id)
+
+    # Render page with previous evaluations
+    previous_evaluations = PerformanceEvaluation.objects.filter(student=student).order_by('-academic_supervisor_submitted_at')
+    return render(request, 'academic/academic_performance_evaluation.html', {
+        'student': student,
+        'previous_evaluations': previous_evaluations,
+        'evaluation': evaluation,
+    })
     
 @login_required
 def academic_student_attendance(request, student_id):

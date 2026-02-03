@@ -410,13 +410,46 @@
     </div>
 
     <!-- Previous Evaluations -->
+    <!--{% with dummy=True %}
+    {% if dummy %}
+    <div class="previous-evaluations">
+        <h3>📋 Evaluation History (1 evaluation found)</h3>
+        <div class="evaluation-history">
+            <div class="evaluation-card">
+                <div class="evaluation-date">
+                    Submitted: March 01, 2026 at 14:30
+                </div>
+
+                <div class="score-row">
+                    <div class="score-item">
+                        <div class="score-label">📋 Attendance Score</div>
+                        <div class="score-value">8/10</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">⏰ Punctuality Score</div>
+                        <div class="score-value">9/10</div>
+                    </div>
+                </div>
+
+                <div class="evaluation-comment">
+                    <div class="comment-label">🏆 Overall Comment</div>
+                    <div class="comment-text">
+                        Strong performance throughout the internship.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}-->
+
     {% if previous_evaluations %}
     <div class="previous-evaluations">
         <h3>📋 Evaluation History ({{ previous_evaluations|length }} evaluation{% if previous_evaluations|length != 1 %}s{% endif %} found)</h3>
         <div class="evaluation-history">
             {% for evaluation in previous_evaluations %}
             <div class="evaluation-card">
-                <div class="evaluation-date">
+                <div class="evalauation-date">
                     Submitted: {{ evaluation.academic_supervisor_submitted_at|date:"F d, Y \a\t H:i" }}
                 </div>
 
@@ -496,7 +529,7 @@
     {% endif %}
 
     <!-- Evaluation Form -->
-    <form class="evaluation-form" method="POST">
+    <form class="evaluation-form" method="POST" action="{% url 'submit_academic_evaluation' student.id %}">
         {% csrf_token %}
 
         <!-- Attendance Section -->
