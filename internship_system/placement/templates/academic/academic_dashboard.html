@@ -76,19 +76,39 @@
 									<h3>Assigned Students</h3>
 									<span class="card-count">{{ students|length }}</span>
 								</header>
-								<ul>
+
+								{% if students %}
+								<div class="student-list-grid">
 									{% for s in students %}
-									<li>
-										<a href="{% url 'academic_student_detail' s.id %}">
-											{{ s.user.get_full_name }} ({{ s.program }})
-										</a>
-									</li>
-									{% empty %}
-									<li>No students assigned.</li>
+									<div class="student-profile-card">
+										<div class="profile-grid">
+											<div class="profile-item">
+												<div class="profile-label">Full Name</div>
+												<div class="profile-value">{{ s.user.get_full_name|default:s.user.username }}</div>
+											</div>
+											<div class="profile-item">
+												<div class="profile-label">Programme</div>
+												<div class="profile-value">{{ s.programme }}</div>
+											</div>
+										</div>
+										<div class="form-actions" style="margin-top: 16px; justify-content: flex-end;">
+											<a href="{% url 'academic_student_detail' s.id %}" class="btn btn-primary">View Profile</a>
+										</div>
+									</div>
 									{% endfor %}
-								</ul>
+								</div>
+								{% else %}
+								<div class="no-student" style="margin-top: 20px;">
+									<div class="no-student-icon">👤</div>
+									<p>No students assigned</p>
+								</div>
+								{% endif %}
 							</article>
 						</div>
+
+
+
+
 
 						<!-- Pending Logbooks -->
 						<div class="col-12">
@@ -98,17 +118,24 @@
 									<span class="card-count">{{ pending_logbooks.count }}</span>
 								</header>
 								<p>Logbooks awaiting review</p>
-								<ul>
+								<div class="pending-logbooks-list">
 									{% for log in pending_logbooks %}
-									<li>
-										{{ log.student.user.get_full_name }} - Week {{ log.week_no }}
-									</li>
+									<div class="pending-logbook-card">
+										<div class="pending-logbook-info">
+											<span class="logbook-student">
+												{{ log.student.user.get_full_name|default:log.student.user.username }}
+											</span>
+											<span class="logbook-date">Submitted: {{ log.submitted_date|date:"M d, Y" }}</span>
+										</div>
+									</div>
 									{% empty %}
-									<li>No pending logbooks.</li>
+									<p>No pending logbooks.</p>
 									{% endfor %}
-								</ul>
+								</div>
 							</article>
 						</div>
+
+
 
 						<!-- Pending Evaluations -->
 						<div class="col-12">
