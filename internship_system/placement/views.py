@@ -455,7 +455,7 @@ def submit_academic_evaluation(request, student_id):
         evaluation.academic_supervisor_submitted_at = timezone.now()
         evaluation.save()
 
-        return redirect('academic_student_detail', student_id=student.id)
+        return redirect('academic_performance_evaluation', student_id=student.id)
 
     # Render page with previous evaluations
     previous_evaluations = PerformanceEvaluation.objects.filter(student=student).order_by('-academic_supervisor_submitted_at')
@@ -2235,87 +2235,83 @@ def academic_student_list(request):
 @login_required
 def academic_performance_evaluation(request, student_id):
     student = get_object_or_404(Student, id=student_id)
-    placement = InternshipPlacement.objects.filter(student=student, status='Active').first()
-    
-    if request.method == 'POST':
-        attendance_score = request.POST.get('attendance_score')
-        punctuality_score = request.POST.get('punctuality_score')
-        work_quality_score = request.POST.get('work_quality_score')
-        overall_score = request.POST.get('overall_score')
-        
-        attendance_comment = request.POST.get('attendance_comment')
-        punctuality_comment = request.POST.get('punctuality_comment')
-        work_quality_comment = request.POST.get('work_quality_comment')
-        overall_comment = request.POST.get('overall_comment')
-        
-        try:
-            academic_supervisor = AcademicSupervisor.objects.get(user=request.user)
-        except AcademicSupervisor.DoesNotExist:
-            messages.error(request, 'You are not registered as an academic supervisor.')
-            return redirect('academic_dashboard')
-        
-        if placement:
-            # Get or create a dummy company supervisor (required by model)
-            try:
-                company_supervisor = placement.internship.company_supervisor
-            except:
-                # If no company supervisor exists, we need to handle this
-                messages.error(request, 'No company supervisor assigned to this internship.')
-                return redirect('academic_performance_evaluation', student_id=student_id)
-            
-            evaluation = PerformanceEvaluation.objects.create(
-                student=student,
-                academic_supervisor=academic_supervisor,
-                application=placement.application,
-                company_supervisor=company_supervisor
-            )
+    academic_supervisor = request.user.academicsupervisor
 
-            
-            # Store evaluation data as JSON
-            evaluation_data = {
-                'attendance': {
-                    'score': int(attendance_score) if attendance_score else None,
-                    'comment': attendance_comment
-                },
-                'punctuality': {
-                    'score': int(punctuality_score) if punctuality_score else None,
-                    'comment': punctuality_comment
-                },
-                'work_quality': {
-                    'score': int(work_quality_score) if work_quality_score else None,
-                    'comment': work_quality_comment
-                },
-                'overall': {
-                    'score': int(overall_score) if overall_score else None,
-                    'comment': overall_comment
-                }
+    # Get ACTIVE placement
+    placement = InternshipPlacement.objects.filter(
+        student=student,
+        status='Active'
+    ).first()
+
+    # Get the related ACCEPTED application (if placement exists)
+    application = None
+    if placement:
+        application = InternshipApplication.objects.filter(
+            student=student,
+            internship=placement.internship,
+            status='Accepted'
+        ).first()
+
+    # Check if already submitted
+    already_submitted = PerformanceEvaluation.objects.filter(
+        student=student,
+        academic_supervisor=academic_supervisor,
+        academic_supervisor_submitted_at__isnull=False
+    ).exists()
+
+    if request.method == 'POST':
+        # Stop submission if no placement or no application
+        if not placement or not application:
+            messages.error(request, "Cannot submit evaluation: missing placement or accepted application.")
+            return redirect('academic_performance_evaluation', student_id=student.id)
+
+        evaluation, created = PerformanceEvaluation.objects.get_or_create(
+            student=student,
+            academic_supervisor=academic_supervisor,
+            defaults={
+                'company_supervisor': placement.company_supervisor,
+                'application': application,
             }
-            
-            evaluation.company_question_answers = evaluation_data
-            
-            # Calculate average score
-            scores = [int(s) for s in [attendance_score, punctuality_score, work_quality_score, overall_score] if s]
-            if scores:
-                evaluation.academic_supervisor_score = sum(scores) // len(scores)
-            
-            evaluation.academic_supervisor_submitted_at = now()
-            evaluation.save()
-            
-            messages.success(request, 'Evaluation submitted successfully!')
-            return redirect('academic_performance_evaluation', student_id=student_id)
-        else:
-            messages.error(request, 'No active internship placement found for this student.')
-            return redirect('academic_performance_evaluation', student_id=student_id)
-    
-    # Fetch all evaluations for this student, sorted by most recent first
+        )
+
+        # Save JSON answers
+        evaluation.company_question_answers = {
+            'attendance': {
+                'score': int(request.POST.get('attendance_score', 0)),
+                'comment': request.POST.get('attendance_comment', ''),
+            },
+            'punctuality': {
+                'score': int(request.POST.get('punctuality_score', 0)),
+                'comment': request.POST.get('punctuality_comment', ''),
+            },
+            'work_quality': {
+                'score': int(request.POST.get('work_quality_score', 0)),
+                'comment': request.POST.get('work_quality_comment', ''),
+            },
+            'overall': {
+                'score': int(request.POST.get('overall_score', 0)),
+                'comment': request.POST.get('overall_comment', ''),
+            },
+        }
+
+        evaluation.academic_supervisor_score = int(request.POST.get('overall_score', 0))
+        evaluation.academic_supervisor_comment = request.POST.get('overall_comment', '')
+        evaluation.academic_supervisor_submitted_at = timezone.now()
+        evaluation.save()
+
+        messages.success(request, "Evaluation submitted successfully.")
+        return redirect('academic_performance_evaluation', student_id=student.id)
+
     previous_evaluations = PerformanceEvaluation.objects.filter(
         student=student
     ).order_by('-academic_supervisor_submitted_at')
-    
+
     return render(request, 'academic/academic_performance_evaluation.html', {
         'student': student,
         'placement': placement,
-        'previous_evaluations': previous_evaluations
+        'application': application,
+        'already_submitted': already_submitted,
+        'previous_evaluations': previous_evaluations,
     })
 
 @login_required
